@@ -1,0 +1,1 @@
+License terms for Autosidian (and, when distributed together, Autosidia-related code in this repository) are not yet published in this file. Replace this placeholder with the chosen license text before distribution.
