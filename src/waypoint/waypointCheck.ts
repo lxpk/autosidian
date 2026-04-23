@@ -30,15 +30,27 @@ export function shouldProcessWaypointOnFolderNote(
 	return { ok: true, parent };
 }
 
-/** Read, insert marker if needed, return new content or null if unchanged. */
-export async function buildWaypointPatchedContent(file: TFile, vault: import("obsidian").Vault): Promise<string | null> {
+/**
+ * Atomically insert the short `%% Waypoint %%` token if the note needs it and does not
+ * already have any Waypoint markers. Uses `vault.process` so we never overwrite a version
+ * that changed between read and write (e.g. the Waypoint plugin expanding the block).
+ * Returns the written string when a marker was inserted, else null (caller must not `modify` again).
+ */
+export async function buildWaypointPatchedContent(
+	file: TFile,
+	vault: import("obsidian").Vault
+): Promise<string | null> {
 	const t = shouldProcessWaypointOnFolderNote(file, true);
 	if (t.ok === false) {
 		return null;
 	}
-	const content = await vault.read(file);
-	if (alreadyHasWaypoint(content)) {
-		return null;
-	}
-	return insertWaypointMarker(content);
+	let inserted = false;
+	const written = await vault.process(file, (content) => {
+		if (alreadyHasWaypoint(content)) {
+			return content;
+		}
+		inserted = true;
+		return insertWaypointMarker(content);
+	});
+	return inserted ? written : null;
 }

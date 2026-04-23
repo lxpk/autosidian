@@ -69,10 +69,7 @@ export class RetroactiveWaypointQueue {
 		const f = this.q.shift();
 		if (f) {
 			try {
-				const next = await buildWaypointPatchedContent(f, f.vault);
-				if (next) {
-					await f.vault.modify(f, next);
-				}
+				void buildWaypointPatchedContent(f, f.vault);
 			} catch (e) {
 				console.error("[Autosidian] waypoint retro", e);
 			}

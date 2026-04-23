@@ -52,7 +52,6 @@ async function runWaypointOnFile(plugin: AutosidianPlugin, file: TFile): Promise
 	try {
 		const next = await buildWaypointPatchedContent(file, file.vault);
 		if (next) {
-			await file.vault.modify(file, next);
 			new Notice("Autosidian: Waypoint token inserted.");
 		} else {
 			new Notice("Autosidian: No waypoint change (not a folder note, no subfolders, or already has Waypoint).");
@@ -71,10 +70,7 @@ async function onCreate(plugin: AutosidianPlugin, file: { path: string } & impor
 		if (!plugin.settings.waypoint.newFolderNotes) {
 			return;
 		}
-		const next = await buildWaypointPatchedContent(file, plugin.app.vault);
-		if (next) {
-			await plugin.app.vault.modify(file, next);
-		}
+		await buildWaypointPatchedContent(file, plugin.app.vault);
 		return;
 	}
 	if (file instanceof TFolder) {
@@ -86,10 +82,7 @@ async function onCreate(plugin: AutosidianPlugin, file: { path: string } & impor
 			const norm = getFolderNotePath(p);
 			const t = plugin.app.vault.getAbstractFileByPath(norm) as TFile | null;
 			if (t && t instanceof TFile) {
-				const next = await buildWaypointPatchedContent(t, plugin.app.vault);
-				if (next) {
-					await plugin.app.vault.modify(t, next);
-				}
+				void buildWaypointPatchedContent(t, plugin.app.vault);
 			}
 		}
 	}

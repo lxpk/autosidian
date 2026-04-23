@@ -30,7 +30,7 @@ npm test        # vitest + tsc + esbuild (AGENTS: run before commit)
 npm run dev     # esbuild watch — reload plugin in Obsidian after each save
 ```
 
-Copy `manifest.json`, `main.js`, and `styles.css` into the vault’s `.obsidian/plugins/autosidian/` (create the folder; see Obsidian’s plugin dev docs for symlink workflows). For **iCloud `autosidian` test vault (macOS)** and `AUTOSIDIAN_E2E_VAULT`, see [e2e/README.md](e2e/README.md#which-vault-to-use-when-testing-in-the-app).
+Copy `manifest.json`, `main.js`, and `styles.css` into the vault’s `.obsidian/plugins/autosidian/` (create the folder; see Obsidian’s plugin dev docs for symlink workflows). For **E2E / integration** (default iCloud `autosidian` on macOS when that folder exists), see [e2e/README.md](e2e/README.md#which-vault-to-use-when-testing-in-the-app) and [AGENTS.md](AGENTS.md#standard-test-checklist).
 
 ## Features (overview)
 

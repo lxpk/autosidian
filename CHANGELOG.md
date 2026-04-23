@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **E2E / integration** — [paths.mjs](e2e/helpers/paths.mjs): **`E2E_SHOULD_OPEN_VAULT_URI`** — only use `obsidian://open?path=…` when **`AUTOSIDIAN_E2E_VAULT`** is set or **`AUTOSIDIAN_E2E_URI=1`**; the bundled fixture is usually not a registered Obsidian vault (“vault not found” otherwise). [open-obsidian.mjs](e2e/scripts/open-obsidian.mjs) falls back to `open -a` / binary + folder. [e2e/README.md](e2e/README.md) updated.
+- **E2E / integration** — [paths.mjs](e2e/helpers/paths.mjs): on **macOS**, default E2E vault is the iCloud **`autosidian` folder** when it exists (else [fixture-vault](e2e/fixture-vault/)); override with **`AUTOSIDIAN_E2E_VAULT`**, or **`AUTOSIDIAN_E2E_USE_FIXTURE=1`** to always use the bundled fixture. **`E2E_SHOULD_OPEN_VAULT_URI`** is on when not using the fixture, or when **`AUTOSIDIAN_E2E_URI=1`**. [AGENTS.md](AGENTS.md) **standard test checklist**; [e2e/README.md](e2e/README.md), [CONTRIBUTING.md](CONTRIBUTING.md), [README.md](README.md) updated.
 
 ## 1.0.0 — 2026-04-23
 

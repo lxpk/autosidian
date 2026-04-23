@@ -1,8 +1,8 @@
 import type { TFile } from "obsidian";
 import { Notice } from "obsidian";
 import type AutosidianPlugin from "../main";
-import { picsumUrlsForTitle } from "./picsum";
-import { hasBannerValue, setBannerOnFile } from "./applyBanner";
+import { noteTitleAsBannerKeyword } from "./keywordsForBanner";
+import { setBannerOnFile } from "./applyBanner";
 
 function clampPpm(n: number): number {
 	return Math.max(1, Math.min(120, Math.floor(n)));
@@ -64,10 +64,12 @@ export class RetroactivePixelQueue {
 		const f = this.q.shift();
 		if (f) {
 			try {
-				const n = this.plugin.settings.pixelBanner.ignoreTitleForSeed ? "note" : f.basename;
-				const urls = picsumUrlsForTitle(n, 1);
-				if (urls[0]) {
-					await setBannerOnFile(this.plugin.app, f, urls[0], this.plugin.settings.pixelBanner);
+				const banner = noteTitleAsBannerKeyword(
+					f.basename,
+					this.plugin.settings.pixelBanner.ignoreTitleForSeed
+				);
+				if (banner) {
+					await setBannerOnFile(this.plugin.app, f, banner, this.plugin.settings.pixelBanner);
 				}
 			} catch (e) {
 				console.error("[Autosidian] pixel retro", e);

@@ -2,6 +2,7 @@ import { Notice, Setting, type TextAreaComponent } from "obsidian";
 import type AutosidianPlugin from "../main";
 import { startWaypointRetro } from "../waypoint/registerWaypointFeature";
 import { startIconRetro } from "../iconize/registerIconizeFeature";
+import { applyPixelBannerPexelsSearchPreset } from "../pixelBanner/pixelBannerApiPreset";
 import { startPixelRetro } from "../pixelBanner/registerPixelBannerFeature";
 import { AutosidiaClient } from "../autosidia/AutosidiaClient";
 import { exportSettingsToJson, importPresetJson, mergeImportedIntoSettings } from "../presets/presetIO";
@@ -135,11 +136,26 @@ export function addAutomationSettingsSections(containerEl: HTMLElement, plugin: 
 	containerEl.createEl("h3", { text: "Auto–Pixel Banner" });
 	containerEl.createEl("p", {
 		cls: "setting-item-description",
-		text: "Uses placeholder images from picsum.photos (URLs in front matter). Pixel Banner reads the `banner` field (or the name you set here).",
+		text: "Writes **search keywords** (not direct image URLs) into front matter so Pixel Banner fetches images via its **3rd party APIs** tab (Pexels / etc.). Aligned with the `banner` field in Pixel Banner → Custom Fields.",
 	});
 	const px = plugin.settings.pixelBanner;
 	new Setting(containerEl)
-		.setName("Enable Pixel Banner automation")
+		.setName("Enable Pixel Banner API search in Pixel Banner settings")
+		.setDesc(
+			"One click: Pexels API key, API provider = Pexels, banner flag + pin + refresh for API images. Run once after installing Pixel Banner."
+		)
+		.addButton((b) => {
+			b.setButtonText("Enable Pixel Banner API search (Pexels)…");
+			b.setTooltip("Updates Pixel Banner plugin data (not Autosidian JSON).");
+			b.onClick(() => {
+				void applyPixelBannerPexelsSearchPreset(plugin.app).catch((e) => {
+					console.error(e);
+					new Notice("Autosidian: could not update Pixel Banner — see console.");
+				});
+			});
+		});
+	new Setting(containerEl)
+		.setName("Enable Autosidian Pixel Banner automation")
 		.addToggle((t) =>
 			t.setValue(px.enabled).onChange(async (v) => {
 				plugin.settings.pixelBanner.enabled = v;
@@ -156,8 +172,8 @@ export function addAutomationSettingsSections(containerEl: HTMLElement, plugin: 
 			});
 		});
 	new Setting(containerEl)
-		.setName("New notes: set banner URL")
-		.setDesc("First Picsum candidate when a new .md is created without a banner.")
+		.setName("New notes: set `banner` to note title")
+		.setDesc("When a new .md is created without a `banner` field, set it to the note title (file name) so Pixel Banner can search Pexels. Field name is configurable above.")
 		.addToggle((t) =>
 			t.setValue(px.newNotes).onChange(async (v) => {
 				plugin.settings.pixelBanner.newNotes = v;
@@ -165,7 +181,8 @@ export function addAutomationSettingsSections(containerEl: HTMLElement, plugin: 
 			})
 		);
 	new Setting(containerEl)
-		.setName("Ignore note title for random seed")
+		.setName("Ignore note title (use random keyword instead)")
+		.setDesc("For new/retro auto-fill and the picker, use a generic keyword instead of the file name.")
 		.addToggle((t) =>
 			t.setValue(px.ignoreTitleForSeed).onChange(async (v) => {
 				plugin.settings.pixelBanner.ignoreTitleForSeed = v;

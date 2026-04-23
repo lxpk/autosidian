@@ -13,13 +13,14 @@ export function hasBannerValue(front: Record<string, unknown>, field: string): b
 export async function setBannerOnFile(
 	app: App,
 	file: TFile,
-	url: string,
+	/** Pixel Banner image URL, vault path, or API search keywords (comma-separated). */
+	bannerValue: string,
 	s: PixelBannerSettings
 ): Promise<void> {
 	if (isUnderObsidianConfig(file.path)) {
 		return;
 	}
 	await app.fileManager.processFrontMatter(file, (front) => {
-		(front as Record<string, string>)[s.bannerField] = url;
+		(front as Record<string, string>)[s.bannerField] = bannerValue;
 	});
 }

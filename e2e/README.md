@@ -2,27 +2,28 @@
 
 ## Which vault to use when testing in the app
 
-**Open the `autosidian` vault** at the iCloud path (macOS):
+**Default on macOS:** if the iCloud **`autosidian`** folder already exists on disk, **`npm test`** / integration **sync the built plugin there automatically** (no env var required):
 
 `~/Library/Mobile Documents/iCloud~md~obsidian/Documents/autosidian`
 
-That is the same location as the constant `ICLOUD_AUTOSIDIAN_VAULT_DARWIN` in [e2e/helpers/paths.mjs](helpers/paths.mjs). Point automation at it by **exporting** the absolute path (tilde is expanded if you use `~/…`):
+Same path as `ICLOUD_AUTOSIDIAN_VAULT_DARWIN` in [e2e/helpers/paths.mjs](helpers/paths.mjs).
 
-```bash
-export AUTOSIDIAN_E2E_VAULT="$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/autosidian"
-```
+**Overrides:**
 
-Then run `npm run test:integration` (copies the built plugin into that vault’s `.obsidian/plugins/autosidian/`) and `npm run test:e2e` or `npm run test:integration:open`.
+- **`AUTOSIDIAN_E2E_VAULT`** — use a different vault (absolute path or `~/…`).
+- **`AUTOSIDIAN_E2E_USE_FIXTURE=1`** — always use the repo’s [e2e/fixture-vault/](fixture-vault/) (e.g. compare against CI, or avoid touching iCloud).
+- **Linux / no iCloud folder** — integration uses [e2e/fixture-vault/](fixture-vault/) (this is what **CI** does).
 
-- **If `AUTOSIDIAN_E2E_VAULT` is unset**, the repo’s checked-in [e2e/fixture-vault/](fixture-vault/) is used (this is what **CI** does).
-- **`obsidian://open?path=…`** only works for paths **inside a vault that is already in Obsidian’s vault list**. The bundled fixture is often **not** registered, so automation **does not** send that URI unless you set **`AUTOSIDIAN_E2E_VAULT`** (recommended: your iCloud `autosidian` folder) or **`AUTOSIDIAN_E2E_URI=1`** after you have opened the fixture as a vault once. Set **`AUTOSIDIAN_E2E_URI=0`** to disable the URI when using a custom vault.
+Then run `npm run test:integration` (or full `npm test`) and optionally `npm run test:e2e` or `npm run test:integration:open`.
+
+**`obsidian://open?path=…`** only works for paths **inside a vault already in Obsidian’s vault list**. The bundled fixture is often **not** registered, so the URI is skipped for the fixture unless **`AUTOSIDIAN_E2E_URI=1`** after you open the fixture as a vault once. When using the iCloud vault (default on Mac) or any non-fixture path, the URI is used unless **`AUTOSIDIAN_E2E_URI=0`**.
 
 ## 1. Build + sync + verify (automated, CI)
 
 Runs as part of **`npm test`** via `test:integration`:
 
 1. **Typecheck + bundle** — same as `npm run build`.
-2. **Sync** — copies `main.js`, `manifest.json`, and `styles.css` into the active E2E vault’s `.obsidian/plugins/autosidian/` (default vault: [e2e/fixture-vault](fixture-vault/) when `AUTOSIDIAN_E2E_VAULT` is unset).
+2. **Sync** — copies `main.js`, `manifest.json`, and `styles.css` into the active E2E vault’s `.obsidian/plugins/autosidian/` (default: iCloud `autosidian` on macOS when that folder exists; else [e2e/fixture-vault](fixture-vault/) — see [paths.mjs](helpers/paths.mjs)).
 3. **Verify** — asserts `manifest.json` is present, `id` is `autosidian`, and `main.js` exists.
 
 No Obsidian app is required. This catches bad builds and missing files before you open the desktop app.
@@ -34,7 +35,7 @@ No Obsidian app is required. This catches bad builds and missing files before yo
 **Which vault opens?** The harness does two things so you are **not** stuck on a previously used vault:
 
 1. **macOS** — A **new** app instance is started with `open -n -a "…/Obsidian.app" --args <E2E vault> --remote-debugging-port=…` so a fresh window is created.
-2. **When `AUTOSIDIAN_E2E_VAULT` is set (or `AUTOSIDIAN_E2E_URI=1`)** — Right after CDP connects, the script may issue  
+2. **When not using the bundled fixture (e.g. default iCloud vault on Mac) or `AUTOSIDIAN_E2E_URI=1`** — Right after CDP connects, the script may issue  
    `obsidian://open?path=<absolute path to …/.obsidian/app.json>`.  
    Per [Obsidian’s URI help](https://obsidian.md/help/uri), that only works if the path is **inside a registered vault** (hence we skip it for the default unregistered fixture).
 

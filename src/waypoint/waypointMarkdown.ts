@@ -1,9 +1,14 @@
 export const WAYPOINT_TOKEN = "%% Waypoint %%";
 export const BEGIN_WAYPOINT = "%% Begin Waypoint %%";
+export const END_WAYPOINT = "%% End Waypoint %%";
 
-/** True if body already has Waypoint expanded or short token (no duplicate insert). */
+/** True if body already has Waypoint expanded, end marker, or short token (no duplicate insert). */
 export function alreadyHasWaypoint(content: string): boolean {
-	return content.includes(BEGIN_WAYPOINT) || content.includes(WAYPOINT_TOKEN);
+	return (
+		content.includes(BEGIN_WAYPOINT) ||
+		content.includes(END_WAYPOINT) ||
+		content.includes(WAYPOINT_TOKEN)
+	);
 }
 
 /**

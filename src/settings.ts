@@ -34,13 +34,13 @@ export interface PixelBannerSettings {
 	enabled: boolean;
 	/** front matter key for the banner image. */
 	bannerField: string;
-	/** Picsum seed / URL pattern — no third-party sign-up. */
+	/** New note: if `banner` is unset, set it to the note title for Pixel Banner Pexels keyword search. */
 	newNotes: boolean;
 	retro: boolean;
 	retroPerMinute: number;
 	/** Picks per candidate list (1–5). */
 	candidateCount: number;
-	/** If true, use random Picsum image without keyword; else seed from first note line/title. */
+	/** If true, ignore the note title when picking default keywords. */
 	ignoreTitleForSeed: boolean;
 }
 

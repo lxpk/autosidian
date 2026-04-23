@@ -12,12 +12,10 @@ Thanks for helping improve **Autosidian** and related docs. The **Autosidia** we
 
 1. [Build a plugin](https://docs.obsidian.md/Plugins/Getting+started/Build+a+plugin) — Official Obsidian plugin development guide.
 2. In the repo root: `npm install` → `npm test` (required before commits per [AGENTS.md](AGENTS.md#pr-instructions)). For iteration, `npm run dev` and reload the plugin in your test vault.
-3. **Test vault (manual / E2E on Mac):** open the **`autosidian` vault** at  
-   `~/Library/Mobile Documents/iCloud~md~obsidian/Documents/autosidian`  
-   and set `AUTOSIDIAN_E2E_VAULT` to that folder when running [integration/E2E](e2e/README.md#which-vault-to-use-when-testing-in-the-app) so `npm run test:integration` syncs the build there. The default `e2e/fixture-vault` is for CI and users who do not set the variable.
+3. **Test vault (manual / E2E):** on **macOS**, if the iCloud **`autosidian`** folder exists, `npm test` **syncs the build there by default** ([e2e/helpers/paths.mjs](e2e/helpers/paths.mjs)). Open that vault in Obsidian, reload the plugin, and smoke-test. Use **`AUTOSIDIAN_E2E_USE_FIXTURE=1 npm test`** to match CI’s [e2e/fixture-vault](e2e/fixture-vault/) only. See [e2e/README.md](e2e/README.md#which-vault-to-use-when-testing-in-the-app) and the **standard test checklist** in [AGENTS.md](AGENTS.md#standard-test-checklist).
 4. Use a **dedicated test vault** with the required community plugins from [SPEC.md](SPEC.md#prerequisites-and-dependencies) installed and **enabled** if you need the settings screen to show all-green dependency checks.
 
-**CI:** Pushes and PRs to `main` / `master` run `npm test` (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)) — **unit tests (vitest)** + **integration** (build, sync to [e2e/fixture-vault](e2e/fixture-vault/), verify manifest). Match that locally before opening a PR.
+**CI:** Pushes and PRs to `main` / `master` run `npm test` (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)) — **unit tests (vitest)** + **integration** (build, sync to the E2E vault, verify manifest; on **Linux** that vault is [e2e/fixture-vault](e2e/fixture-vault/)). **Locally on Mac** with iCloud, integration usually targets your `autosidian` folder instead. Match the pipeline before opening a PR (or use `AUTOSIDIAN_E2E_USE_FIXTURE=1` to mirror CI).
 
 **Releasing to the community store:** Follow [Obsidian’s plugin guidelines](https://github.com/obsidianmd/obsidian-releases/blob/master/PLUGIN_SUBMISSION.md); bump [manifest](manifest.json) / [versions.json](versions.json), update [CHANGELOG](CHANGELOG.md), and tag releases consistently.
 

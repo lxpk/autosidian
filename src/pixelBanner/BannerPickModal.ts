@@ -3,20 +3,20 @@ import type AutosidianPlugin from "../main";
 import { setBannerOnFile } from "./applyBanner";
 
 export class BannerPickModal extends FuzzySuggestModal<string> {
-	urls: string[];
+	candidates: string[];
 	file: TFile;
 	plugin: AutosidianPlugin;
 
-	constructor(app: App, plugin: AutosidianPlugin, file: TFile, urls: string[]) {
+	constructor(app: App, plugin: AutosidianPlugin, file: TFile, candidates: string[]) {
 		super(app);
 		this.plugin = plugin;
 		this.file = file;
-		this.urls = urls;
-		this.setPlaceholder("Pick a banner image URL");
+		this.candidates = candidates;
+		this.setPlaceholder("Pick a Pixel Banner search keyword (Pexels API)");
 	}
 
 	getItems(): string[] {
-		return this.urls;
+		return this.candidates;
 	}
 
 	getItemText(item: string): string {
