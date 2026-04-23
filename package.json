@@ -9,6 +9,8 @@
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
 		"test:unit": "vitest run",
 		"test:integration": "npm run build && node e2e/scripts/sync-plugin.mjs && node e2e/scripts/verify-snapshot.mjs",
+		"test:integration:pixel-folder-notes": "node e2e/scripts/apply-pixel-banner-to-folder-notes.mjs",
+		"test:integration:pixel-folder-notes:write": "node e2e/scripts/apply-pixel-banner-to-folder-notes.mjs --write",
 		"test": "npm run test:unit && npm run test:integration",
 		"test:e2e": "npm run test:integration && node e2e/spec/autosidian-settings.mjs",
 		"test:integration:open": "npm run test:integration && node e2e/scripts/open-obsidian.mjs"

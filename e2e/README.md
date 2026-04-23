@@ -28,6 +28,15 @@ Runs as part of **`npm test`** via `test:integration`:
 
 No Obsidian app is required. This catches bad builds and missing files before you open the desktop app.
 
+## 1a. Auto–Pixel Banner + folder notes (files on disk, optional)
+
+[`apply-pixel-banner-to-folder-notes.mjs`](scripts/apply-pixel-banner-to-folder-notes.mjs) finds every [folder note](https://github.com/LostPaul/obsidian-folder-notes) on disk (`Parent/Parent.md`) and, if the `banner` property is empty or missing, **sets `banner: <note title>`** (same rule as the plugin) so [Pixel Banner](https://github.com/jparkerweb/pixel-banner) can run **keyword / Pexels** search.
+
+- **`npm run test:integration:pixel-folder-notes`** — **dry run** (lists which files would get `banner`; no writes). Uses the same [E2E_VAULT](helpers/paths.mjs) as `sync-plugin` (iCloud on macOS by default when that folder exists).
+- **`npm run test:integration:pixel-folder-notes:write`** — **writes** those files. Idempotent: skips notes that already have a non-empty `banner`. Optional env: `AUTOSIDIAN_BANNER_FIELD` (default `banner`).
+
+The fixture includes [FolderTest/FolderTest.md](fixture-vault/FolderTest/FolderTest.md) so a dry run always reports at least one target until you run `:write` on the fixture.
+
 ## 2. Desktop UI test (local, optional)
 
 **`npm run test:e2e`** runs (1) then drives the **real Obsidian window** with **[Puppeteer over Chrome DevTools Protocol](https://pptr.dev/)** (`puppeteer-core` — it attaches to Obsidian’s own Chromium; no separate browser install).

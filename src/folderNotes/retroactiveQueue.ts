@@ -89,6 +89,11 @@ export class RetroactiveFolderNotes {
 		}
 	}
 
+	/** Folders (or 0) still waiting in the retro queue. */
+	getQueueLength(): number {
+		return this.q.length;
+	}
+
 	halt(): void {
 		if (this.tick !== null) {
 			window.clearInterval(this.tick);

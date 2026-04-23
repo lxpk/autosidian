@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **E2E** — [apply-pixel-banner-to-folder-notes.mjs](e2e/scripts/apply-pixel-banner-to-folder-notes.mjs): add `banner` (Pixel Banner keyword) to every folder note missing it; `npm run test:integration:pixel-folder-notes` (dry) / `:write`. [e2e/README.md](e2e/README.md) §1a.
 - **E2E / integration** — [paths.mjs](e2e/helpers/paths.mjs): on **macOS**, default E2E vault is the iCloud **`autosidian` folder** when it exists (else [fixture-vault](e2e/fixture-vault/)); override with **`AUTOSIDIAN_E2E_VAULT`**, or **`AUTOSIDIAN_E2E_USE_FIXTURE=1`** to always use the bundled fixture. **`E2E_SHOULD_OPEN_VAULT_URI`** is on when not using the fixture, or when **`AUTOSIDIAN_E2E_URI=1`**. [AGENTS.md](AGENTS.md) **standard test checklist**; [e2e/README.md](e2e/README.md), [CONTRIBUTING.md](CONTRIBUTING.md), [README.md](README.md) updated.
 
 ## 1.0.0 — 2026-04-23

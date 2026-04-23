@@ -30,6 +30,7 @@ Run these after substantive changes (and before pushing / opening a PR):
 2. **E2E vault** — On **macOS**, if `~/Library/Mobile Documents/iCloud~md~obsidian/Documents/autosidian` exists, **`npm test` syncs the built plugin there automatically** ([e2e/helpers/paths.mjs](e2e/helpers/paths.mjs)). On Linux (e.g. CI) or when that folder is missing, the repo’s [e2e/fixture-vault/](e2e/fixture-vault/) is used. To **force** the bundled fixture on a Mac: `AUTOSIDIAN_E2E_USE_FIXTURE=1 npm test`. To use another vault: set **`AUTOSIDIAN_E2E_VAULT`** ([e2e/README.md](e2e/README.md#which-vault-to-use-when-testing-in-the-app)).
 3. **Obsidian** — Open the **iCloud `autosidian`** vault (or whichever vault integration targeted), **reload** Autosidian (Community plugins → reload, or restart Obsidian), and **smoke-test** the behavior you changed.
 4. Optional — **`npm run test:e2e`** for automated desktop UI (local; see [e2e/README.md](e2e/README.md)).
+5. Optional — **Pixel Banner + folder notes** — `npm run test:integration:pixel-folder-notes` (dry-run: add `banner: <title>` to folder notes that lack it) or `npm run test:integration:pixel-folder-notes:write` to apply. See [e2e/README.md](e2e/README.md#1a-autopixel-banner--folder-notes-files-on-disk-optional).
 
 
 ## Plan Mode
