@@ -20,16 +20,16 @@ TypeScript + esbuild, manifest, required-plugin notice, [CI](.github/workflows/c
 
 ## Phase 3 — Auto–Iconize *(v1.0+)*
 
-[iconize/](src/iconize/) — keyword → `icon` front matter on folder note; [keyword tests](src/iconize/keywordMatch.test.ts). **Follow-up:** in-app table editor (optional).
+[iconize/](src/iconize/) — keyword → `icon` on folder note; [keyword tests](src/iconize/keywordMatch.test.ts); in-app [keyword table](src/ui/iconizeRuleTable.ts).
 
 ## Phase 4 — Auto–Pixel Banner *(v1.0+)*
 
-[pixelBanner/](src/pixelBanner/) — Picsum URLs, modal picker, retro. **Follow-up:** other image providers with keys in Secret storage.
+[pixelBanner/](src/pixelBanner/) — `banner` keywords + Pixel Banner Pexels; modal picker, retro, [e2e folder-note script](e2e/scripts/apply-pixel-banner-to-folder-notes.mjs). **Follow-up:** other stock APIs (Unsplash, Cloudinary) with keys in [Obsidian Secret](https://docs.obsidian.md) if you want to bypass Pixel Banner’s own settings.
 
 ## Phase 5 — Quality *(v1.0+ started)*
 
-- **Vitest** in CI via `npm test` ([package.json](package.json)). Expand tests for [migrateSettings](src/migrateSettings.ts) / preset merge.
-- **Community store** — When ready, use [plugin submission](https://github.com/obsidianmd/obsidian-releases/blob/master/PLUGIN_SUBMISSION.md) and README screenshot. See [CONTRIBUTING](CONTRIBUTING.md).
+- **Vitest** in CI — [migrateSettings](src/migrateSettings.test.ts) / [preset merge](src/presets/presetIO.test.ts) + existing tests.
+- **Community store** — When ready, follow [CONTRIBUTING](CONTRIBUTING.md#publishing-to-the-community-plugin-list).
 
 ## Phase 6 — Autosidia *(stub v1.0+)*
 
@@ -37,7 +37,7 @@ TypeScript + esbuild, manifest, required-plugin notice, [CI](.github/workflows/c
 
 ## Longer horizon
 
-i18n, mobile soak tests, index workers, optional 5th-party integrations — after core automation proven stable. See [TODO](TODO.md) for smaller follow-ups.
+i18n, mobile soak tests, index workers, optional 5th-party integrations — after core automation proven stable. [TODO.md](TODO.md) is clear; check there if new tasks are added.
 
 ## Review cadence
 

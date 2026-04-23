@@ -28,6 +28,26 @@ export interface IconizeSettings {
 	retroPerMinute: number;
 	/** Longest match wins. */
 	rules: IconizeRule[];
+	/**
+	 * If set (e.g. `📝`), used when the folder name matches **no** keyword, so every folder note
+	 * can get an icon. Empty = use diverse suggestions (below) or keyword-only.
+	 */
+	defaultIcon: string;
+	/**
+	 * If true (and **Default icon** is empty), use a **stable** emoji from a built-in list so every
+	 * folder name without a matching keyword still gets a distinct icon.
+	 */
+	suggestDiverseUnmatched: boolean;
+	/**
+	 * Call Iconize’s `addFolderIcon` on the **folder** path (not just front matter on the note).
+	 * File explorer rows use the folder key; see [UI.md](UI.md) if icons only appear on the note line.
+	 */
+	syncIconizeFolderRow: boolean;
+	/**
+	 * When on: use **emojilib** (full project emoji + English keywords) plus built-in **synonym** expansions
+	 * to pick the best-fitting emoji for the **folder name** (after your table rules, before default / diverse).
+	 */
+	matchMostSimilarEmoji: boolean;
 }
 
 export interface PixelBannerSettings {
@@ -100,6 +120,11 @@ export const DEFAULT_SETTINGS: AutosidianSettings = {
 		retro: false,
 		retroPerMinute: 20,
 		rules: defaultIconizeRules,
+		/** `📝` = icon on every folder note when Retro runs; clear to rely on diverse list / keywords only. */
+		defaultIcon: "📝",
+		suggestDiverseUnmatched: true,
+		syncIconizeFolderRow: true,
+		matchMostSimilarEmoji: true,
 	},
 	pixelBanner: {
 		enabled: false,

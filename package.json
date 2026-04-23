@@ -29,6 +29,7 @@
 		"vitest": "^3.0.0"
 	},
 	"dependencies": {
+		"emojilib": "^3.0.10",
 		"obsidian": "latest"
 	}
 }

@@ -1,4 +1,4 @@
-import { Plugin } from "obsidian";
+import { Notice, Plugin } from "obsidian";
 import { migrateSettings } from "./migrateSettings";
 import { AutosidianSettingTab } from "./ui/AutosidianSettingTab";
 import { DEFAULT_SETTINGS, type AutosidianSettings } from "./settings";
@@ -23,6 +23,23 @@ export default class AutosidianPlugin extends Plugin {
 	async onload(): Promise<void> {
 		await this.loadSettings();
 		this.addSettingTab(new AutosidianSettingTab(this.app, this));
+		this.addCommand({
+			id: "autosidian-stop-all-retro-queues",
+			name: "Stop all background retro queues (folder, waypoint, iconize, pixel)",
+			callback: () => {
+				const a = this.folderNotesRetro.getQueueLength();
+				const b = this.waypointRetro.getQueueLength();
+				const c = this.iconizeRetro.getQueueLength();
+				const d = this.pixelRetro.getQueueLength();
+				this.folderNotesRetro.halt();
+				this.waypointRetro.halt();
+				this.iconizeRetro.halt();
+				this.pixelRetro.halt();
+				new Notice(
+					`Autosidian: stopped retro queues (had ${a} + ${b} + ${c} + ${d} item(s) pending).`
+				);
+			},
+		});
 		registerFolderNotesFeature(this);
 		registerWaypointFeature(this);
 		registerIconizeFeature(this);

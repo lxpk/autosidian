@@ -48,7 +48,7 @@ The fixture includes [FolderTest/FolderTest.md](fixture-vault/FolderTest/FolderT
    `obsidian://open?path=<absolute path to …/.obsidian/app.json>`.  
    Per [Obsidian’s URI help](https://obsidian.md/help/uri), that only works if the path is **inside a registered vault** (hence we skip it for the default unregistered fixture).
 
-The script then opens **Settings (⌘, / Ctrl+,)** and checks the Autosidian settings tab. Use **English** UI unless you change the E2E script strings.
+The script then opens **Settings (⌘, / Ctrl+,)** and checks the Autosidian settings tab for **`.autosidian-settings-notice` or `.autosidian-ok`** (required plugins missing vs all enabled). It **closes the window when done** — to **see** Obsidian stay open, use **`npm run test:integration:open`** and open **Settings → Community plugins → Autosidian** yourself. Use **English** UI unless you change the E2E script strings.
 
 **Optional** — set **`SKIP_E2E=1`** to skip the UI step, or set **`OBSIDIAN_PATH`** if the executable is not in the usual place.
 

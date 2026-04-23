@@ -12,7 +12,8 @@ Surfaces for **Autosidian** (Obsidian plugin) and, when implemented, the **Autos
 | `autosidian-convert-note-to-folder` | Convert active note to folder with folder note | Active file must be eligible `.md`. |
 | `autosidian-add-waypoint` | Add %% Waypoint %% to active folder note (if needed) | Active file. |
 | `autosidian-apply-icon-selection` | Apply keyword icon to selected folder (folder note) | Active file must be a folder note. |
-| `autosidian-pick-banner-candidates` | Pick banner from image candidates (Picsum) — current note | Modal with URL choices. |
+| `autosidian-pick-banner-candidates` | Pick banner from keyword candidates (Pixel Banner / Pexels) — current note | Modal; writes keyword to `banner`. |
+| `autosidian-stop-all-retro-queues` | Stop all background retro queues (folder, waypoint, iconize, pixel) | Clears pending queue items; does not change retro toggles. |
 
 - **Manifest** — [manifest.json](manifest.json) exposes `id`, `name`, `version`, and `minAppVersion`; must stay aligned with [SPEC.md](SPEC.md#prerequisites-and-dependencies).
 - **Front matter** — [FileManager](https://docs.obsidian.md) `processFrontMatter` for `icon` (Iconize) and `banner` (Pixel Banner) fields (names configurable in settings).
@@ -36,12 +37,12 @@ Integration is with **public** behavior of these plugins, not private Iconize/Pi
 
 - [Folder Notes](https://github.com/LostPaul/obsidian-folder-notes) — `Name/Name.md` layout.
 - [Waypoint](https://github.com/IdreesInc/Waypoint) — `%% Waypoint %%` / `%% Begin Waypoint %%`.
-- [Iconize](https://florianwoelki.github.io/obsidian-iconize/) — We set the **`icon` front matter** on **folder notes**; user should enable Iconize’s front matter / properties integration for folder notes.
-- [Pixel Banner](https://github.com/jparkerweb/pixel-banner) — We set **`banner`** (or a custom name) in front matter, usually as **HTTPS** URLs. Pixel Banner can read [multiple formats](https://github.com/jparkerweb/pixel-banner); we output plain URLs (see [pictures](src/pixelBanner/picsum.ts) seeds).
+- [Iconize](https://florianwoelki.github.io/obsidian-iconize/) — We set the **`icon` front matter** on **folder notes** (table rules, optional **emojilib**-based most-similar match when enabled, **`defaultIcon`**, **diverse** hash). **File menu** on a folder note: best-matching emoji from folder name ([`applyBestMatchingEmojiToFolder`](src/iconize/applyIconFrontmatter.ts)). Optional `addFolderIcon` on the **folder** path ([`syncIconizeFolderExplorerPath.ts`](src/iconize/syncIconizeFolderExplorerPath.ts), [`emojiSimilarity.ts`](src/iconize/emojiSimilarity.ts)). [Use Frontmatter / properties in Iconize](https://florianwoelki.github.io/obsidian-iconize/files-and-folders/use-frontmatter.html); field name matches Autosidian’s **Icon front matter field**.
+- [Pixel Banner](https://github.com/jparkerweb/pixel-banner) — We set **`banner`** to **search keywords** (note title) or similar so Pixel Banner’s API layer can resolve images; or custom field names. See [keywordsForBanner.ts](src/pixelBanner/keywordsForBanner.ts).
 
 ## Network (optional)
 
-- **Picsum** — `https://picsum.photos/seed/.../1200/400` for Auto–Pixel Banner. No personal key; [picsum.photos](https://picsum.photos) is a public placeholder service. Apply your own [SECURITY.md](SECURITY.md) and vault policy.
+- **Pexels (via Pixel Banner)** — Configure keys in the Pixel Banner plugin; Autosidian can one-click a Pexels preset. Apply your own [SECURITY.md](SECURITY.md) and vault policy.
 - **Autosidia** — [AutosidiaClient](src/autosidia/AutosidiaClient.ts) `GET {base}/health` when you configure `registryBaseUrl` and use **Test** in settings.
 - **Future** — Image providers with API keys: use Obsidian [Secret storage](https://docs.obsidian.md) when implemented.
 
@@ -51,4 +52,4 @@ Integration is with **public** behavior of these plugins, not private Iconize/Pi
 
 ## Security reference
 
-- TLS for public HTTPS to Picsum and to Autosidia when deployed. For vulnerability reporting, see [SECURITY.md](SECURITY.md).
+- TLS for public HTTPS to Pexels (via Pixel Banner) and to Autosidia when deployed. For vulnerability reporting, see [SECURITY.md](SECURITY.md).

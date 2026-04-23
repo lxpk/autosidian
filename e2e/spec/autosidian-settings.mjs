@@ -104,21 +104,22 @@ async function run() {
 
 		await openAutosidianSettingsTab(settingsPage);
 
-		// [AutosidianSettingTab] missing-deps banner
+		// [AutosidianSettingTab] — missing-deps banner OR "all required plugins enabled" (ok line)
 		try {
-			await settingsPage.waitForSelector(".autosidian-settings-notice", { timeout: 45_000 });
+			await settingsPage.waitForSelector(".autosidian-settings-notice, .autosidian-ok", { timeout: 45_000 });
 		} catch (e) {
 			const snippet = await settingsPage
 				.evaluate(() => (document.body ? document.body.innerText.slice(0, 2_000) : ""))
 				.catch(() => "(could not read DOM)");
 			throw new Error(
-				"Did not find .autosidian-settings-notice. Is the Autosidian settings tab open? " +
+				"Did not find .autosidian-settings-notice or .autosidian-ok. Is the Autosidian settings tab open? " +
 					"Body snippet (first 2k): " +
 					snippet +
 					" — Original: " +
 					(e && e.message)
 			);
 		}
+		console.log("E2E: Autosidian settings tab OK (plugin notice or all-deps-ok).");
 	} finally {
 		await close();
 	}

@@ -6,3 +6,44 @@
 .autosidian-ok {
 	color: var(--text-success);
 }
+
+.autosidian-icon-rule-table {
+	overflow-x: auto;
+	margin: 0.5em 0 1em;
+}
+.autosidian-icon-rules {
+	width: 100%;
+	border-collapse: collapse;
+}
+.autosidian-icon-rules th,
+.autosidian-icon-rules td {
+	padding: 0.25em 0.5em 0.25em 0;
+	text-align: left;
+	vertical-align: middle;
+}
+.autosidian-icon-rules .autosidian-input {
+	width: 100%;
+	min-width: 6rem;
+}
+
+.autosidian-emoji-synonym-wrap,
+.autosidian-emoji-lookup-host {
+	margin: 0.5em 0 1em;
+}
+
+.autosidian-emoji-synonym-scroll,
+.autosidian-emoji-lookup-scroll {
+	max-height: 14rem;
+	overflow-y: auto;
+}
+
+.autosidian-emoji-cell {
+	font-size: 1.25em;
+	line-height: 1.2;
+}
+
+.autosidian-emoji-kw {
+	font-size: 0.85em;
+	color: var(--text-muted);
+	word-break: break-word;
+}

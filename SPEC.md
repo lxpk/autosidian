@@ -33,7 +33,7 @@ This document is the project specification: installation, dependencies, how Auto
 - **Auto–Folder Notes (v0.2+):** `Name/Name.md` for new folders (toggle), new-note → folder conversion (toggle), retroactive queue, command + file menu. [UI.md](UI.md#autofolder-notes).
 - **Auto–Waypoint (v1.0+):** When a **folder note** is also a `Name/Name.md` and its **parent folder** has at least one **subfolder**, insert `%% Waypoint %%` (after front matter) if the body has neither the short token nor `%% Begin Waypoint %%`. Triggers: new such files, or when a new **subfolder** is created (optional toggle). Per-minute retro queue. [UI.md](UI.md#autowaypoint) · [waypoint](src/waypoint/).
 - **Auto–Iconize (v1.0+):** Longest **keyword** match on the **folder name** → set configurable front matter (default `icon`) on the **folder note**; built-in + JSON-imported rules. New/rename folder + per-minute retro. [UI.md](UI.md#autoiconize) · [iconize](src/iconize/).
-- **Auto–Pixel Banner (v1.0+):** Sets **`banner`** in front matter to a **Picsum** HTTPS URL. New note (optional), retro, and a command that opens a modal of candidate URLs. [UI.md](UI.md#autopixel-banner) · [pixelBanner](src/pixelBanner/).
+- **Auto–Pixel Banner (v1.0+):** Sets **`banner`** in front matter to **search keywords** (notably the note title) for [Pixel Banner](https://github.com/jparkerweb/pixel-banner) Pexels/API flow. New note (optional), retro, picker command, optional one-click Pexels settings. [UI.md](UI.md#autopixel-banner) · [pixelBanner](src/pixelBanner/).
 - **Presets (v1.0+):** Copy/export JSON, import partial merge. [presets](src/presets/presetIO.ts).
 - **Autosidia (stub, v1.0+):** Optional `registryBaseUrl` and **Ping** → `GET /health` only; no hosted service in-repo.
 

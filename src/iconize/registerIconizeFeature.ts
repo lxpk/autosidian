@@ -1,11 +1,47 @@
 import { TFile, TFolder, Notice } from "obsidian";
 import type AutosidianPlugin from "../main";
+import { isFolderNoteFile } from "../folderNotes/folderNotePath";
 import { isUnderObsidianConfig } from "../safePath";
 import { iterateAllFoldersNotRoot } from "../folderNotes/iterFolders";
-import { applyIconToFolder } from "./applyIconFrontmatter";
-import { pickIconForTitle } from "./keywordMatch";
+import { applyBestMatchingEmojiToFolder, applyIconToFolder, getFolderNoteFile } from "./applyIconFrontmatter";
+import { iconizeResolveOptions, resolveIconForFolderName } from "./keywordMatch";
 
 export function registerIconizeFeature(plugin: AutosidianPlugin): void {
+	plugin.registerEvent(
+		plugin.app.workspace.on("file-menu", (menu, file) => {
+			if (!(file instanceof TFile) || file.extension !== "md") {
+				return;
+			}
+			if (!isFolderNoteFile(file) || isUnderObsidianConfig(file.path)) {
+				return;
+			}
+			const folder = file.parent;
+			if (!folder || !(folder instanceof TFolder)) {
+				return;
+			}
+			menu.addItem((item) => {
+				item.setTitle("Autosidian: Auto-iconize best-matching emoji (from folder name)");
+				item.setSection("autosidian");
+				item.onClick(() => {
+					void (async () => {
+						const r = await applyBestMatchingEmojiToFolder(plugin.app, folder, plugin.settings.iconize);
+						if (r.ok) {
+							new Notice(`Autosidian: set ${plugin.settings.iconize.iconField} to ${r.emoji} (best match for “${folder.name}”).`);
+						} else if (r.reason === "disabled") {
+							new Notice("Autosidian: enable Auto–Iconize in settings first.");
+						} else if (r.reason === "no-match") {
+							new Notice(`Autosidian: no strong emoji match for “${folder.name}”.`);
+						} else if (r.reason === "skip-present") {
+							new Notice("Autosidian: skipped — icon already set (turn off “Skip if icon already set” to overwrite).");
+						} else if (r.reason === "no-note") {
+							new Notice("Autosidian: folder note file missing.");
+						}
+					})();
+				});
+			});
+		})
+	);
+
 	plugin.app.workspace.onLayoutReady(() => {
 		plugin.registerEvent(
 			plugin.app.vault.on("create", (f) => {
@@ -47,7 +83,9 @@ export function registerIconizeFeature(plugin: AutosidianPlugin): void {
 				void (async () => {
 					const ok = await applyIconToFolder(plugin.app, p, plugin.settings.iconize);
 					new Notice(
-						ok ? "Autosidian: icon applied (if it matched a keyword)." : "Autosidian: no icon change (disabled, no match, or icon present)."
+						ok
+							? "Autosidian: icon applied to folder note (keyword or default icon)."
+							: "Autosidian: no icon change (disabled, no keyword/default icon, or skip-if-present blocked)."
 					);
 				})();
 			}
@@ -78,14 +116,30 @@ async function onMaybeFolderNoteRenamed(
 	}
 }
 
+/**
+ * After changing icon rules, default icon, or main toggles, call this when **Retro** is on so
+ * the queue is rebuilt (otherwise a stale or empty queue never picks up the new `defaultIcon`).
+ */
+export function restartIconizeRetroIfEnabled(plugin: AutosidianPlugin): void {
+	if (!plugin.settings.iconize.enabled || !plugin.settings.iconize.retro) {
+		return;
+	}
+	plugin.iconizeRetro.halt();
+	void startIconRetro(plugin, false);
+}
+
 export async function startIconRetro(plugin: AutosidianPlugin, announce: boolean): Promise<void> {
+	const s = plugin.settings.iconize;
 	const all: TFolder[] = [];
 	for (const f of iterateAllFoldersNotRoot(plugin.app.vault.getRoot())) {
 		if (isUnderObsidianConfig(f.path)) {
 			continue;
 		}
-		// only queue if a keyword would match
-		if (pickIconForTitle(f.name, plugin.settings.iconize.rules)) {
+		if (!getFolderNoteFile(f, plugin.app)) {
+			continue;
+		}
+		const ico = resolveIconForFolderName(f.name, s.rules, s.defaultIcon, iconizeResolveOptions(s));
+		if (ico) {
 			all.push(f);
 		}
 	}

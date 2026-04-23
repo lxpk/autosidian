@@ -17,7 +17,12 @@ Thanks for helping improve **Autosidian** and related docs. The **Autosidia** we
 
 **CI:** Pushes and PRs to `main` / `master` run `npm test` (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)) — **unit tests (vitest)** + **integration** (build, sync to the E2E vault, verify manifest; on **Linux** that vault is [e2e/fixture-vault](e2e/fixture-vault/)). **Locally on Mac** with iCloud, integration usually targets your `autosidian` folder instead. Match the pipeline before opening a PR (or use `AUTOSIDIAN_E2E_USE_FIXTURE=1` to mirror CI).
 
-**Releasing to the community store:** Follow [Obsidian’s plugin guidelines](https://github.com/obsidianmd/obsidian-releases/blob/master/PLUGIN_SUBMISSION.md); bump [manifest](manifest.json) / [versions.json](versions.json), update [CHANGELOG](CHANGELOG.md), and tag releases consistently.
+### Publishing to the community plugin list
+
+1. Screenshot the Autosidian settings tab for [README](README.md) (or a short demo GIF) — not automated.
+2. Follow [plugin submission](https://github.com/obsidianmd/obsidian-releases/blob/master/PLUGIN_SUBMISSION.md): bump [manifest](manifest.json) and [versions.json](versions.json), update [CHANGELOG](CHANGELOG.md), open a release PR to `obsidianmd/obsidian-releases`, and tag the plugin repo (e.g. `1.0.0`).
+
+**Releasing in general** — same manifest/changelog/tags for private or beta builds; community listing is the extra review step.
 
 [AGENTS.md](AGENTS.md) has extra notes for AI-assisted contributors.
 

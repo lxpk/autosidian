@@ -1,12 +1,9 @@
 # TODO
 
-[PLANS.md](PLANS.md) = strategy; this list = next concrete steps.
+[PLANS.md](PLANS.md) = strategy. This file tracks **actionable** follow-ups. There are **no** unsolved checklist items in-repo right now; recent work is in the changelog, shipped, or [PLANS.md](PLANS.md) *Longer horizon*.
 
-- [ ] In-app **icon rule table** (optional) so users need not use JSON.
-- [ ] **Waypoint** — optional progress bar; cancel for long retro.
-- [ ] **Pixel** — Unsplash/Cloudinary with keys in Obsidian [Secret](https://docs.obsidian.md) when you want more than Picsum.
-- [ ] **Tests** — `migrateSettings` + preset merge; optional E2E in a sample vault.
-- [ ] **Community release** — README screenshot, [submission checklist](https://github.com/obsidianmd/obsidian-releases/blob/master/PLUGIN_SUBMISSION.md), tag **1.0.0** on [GitHub](https://github.com) when published.
-- [ ] **Autosidia** app — out of this repo until scaffolded; keep [client](src/autosidia/AutosidiaClient.ts) in sync with API.
+- **Done (see [CHANGELOG](CHANGELOG.md) Unreleased + PR history):** in-app **icon rules table**; **waypoint** queue hint + **stop all retro queues** (command + settings); **tests** for `migrateSettings` + preset merge; **E2E** `apply-pixel-banner-to-folder-notes` + default iCloud vault; **docs** (UI, API, AGENTS).
+- **Not in this repo (track elsewhere):** **Autosidia** app — [SPEC.md](SPEC.md#autosidia-community-registry) / [PLANS](PLANS.md#phase-6--autosidia-stub-v10); keep [AutosidiaClient](src/autosidia/AutosidiaClient.ts) aligned when an API exists.
+- **When you cut a public release** — [CONTRIBUTING.md](CONTRIBUTING.md#publishing-to-the-community-plugin-list) checklist (README screenshot, [submission](https://github.com/obsidianmd/obsidian-releases/blob/master/PLUGIN_SUBMISSION.md), tag).
 
-**CI** — [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs `npm test` = **vitest** + `tsc` + **esbuild** bundle.
+**CI** — [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs `npm test` = **vitest** + `tsc` + **esbuild** bundle + integration sync/verify.
