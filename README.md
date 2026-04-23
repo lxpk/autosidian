@@ -4,7 +4,7 @@
 
 **Target users:** Vaults that rely on [Folder Notes](https://github.com/LostPaul/obsidian-folder-notes), [Waypoint](https://github.com/IdreesInc/Waypoint), [Iconize](https://florianwoelki.github.io/obsidian-iconize/), and [Pixel Banner](https://github.com/jparkerweb/pixel-banner) and want those tools kept in sync as the vault grows.
 
-**License:** See [LICENSE.txt](LICENSE.txt).
+**License:** [Apache 2.0](LICENSE.txt) — SPDX: `Apache-2.0` (see appendix in file for copyright line).
 
 ## Requirements
 
@@ -15,21 +15,31 @@ Install and enable the following **community plugins** (Autosidian does not repl
 - [Iconize](https://florianwoelki.github.io/obsidian-iconize/) (the features below refer to this plugin; “Auto-Iconize” in settings is automation *for* Iconize.)
 - [Pixel Banner](https://github.com/jparkerweb/pixel-banner) (see also [eQuillabs — Pixel Banner](https://www.equilllabs.com/projects/pixel-banner/))
 
-For minimum Obsidian versions, build steps, and full behavioral detail, see [SPEC.md](SPEC.md).
+**Minimum Obsidian:** `1.6.0` (see `manifest.json` `minAppVersion`; aligns with Pixel Banner’s floor). For build steps and full detail, see [SPEC.md](SPEC.md).
 
 ## Installation
 
 - **From Obsidian (when published):** Community plugins → search **Autosidian** → Install → Enable.
-- **From source (development):** See [SPEC.md](SPEC.md#installation) and [CONTRIBUTING.md](CONTRIBUTING.md).
+- **From source (development):** [SPEC.md](SPEC.md#from-source-development) and [CONTRIBUTING.md](CONTRIBUTING.md).
+
+### Development (quick)
+
+```bash
+npm install
+npm test        # vitest + tsc + esbuild (AGENTS: run before commit)
+npm run dev     # esbuild watch — reload plugin in Obsidian after each save
+```
+
+Copy `manifest.json`, `main.js`, and `styles.css` into the vault’s `.obsidian/plugins/autosidian/` (create the folder; see Obsidian’s plugin dev docs for symlink workflows). For **iCloud `autosidian` test vault (macOS)** and `AUTOSIDIAN_E2E_VAULT`, see [e2e/README.md](e2e/README.md#which-vault-to-use-when-testing-in-the-app).
 
 ## Features (overview)
 
 | Area | What it does |
 |------|----------------|
 | **Auto–Folder Notes** | Ensures new folders get folder notes, can convert single notes into folder+folder note, optional retroactive pass. |
-| **Auto–Waypoint** | Injects `%% Waypoint %%` into folder notes that need a waypoint, with new-note and retroactive options and rate limits. |
-| **Auto–Iconize** | Suggests or applies emoji for folders from keyword rulesets; import/export of keyword lists. |
-| **Auto–Pixel Banner** | Helps find and attach banner images (manual search UI and optional automatic/retroactive modes with rate limits). |
+| **Auto–Waypoint** | Injects `%% Waypoint %%` when a folder note has subfolders and no waypoint; new-note + subfolder create + optional retro, rate-limited. |
+| **Auto–Iconize** | Longest-keyword match; writes `icon` front matter on folder notes (import/export keyword JSON in settings). |
+| **Auto–Pixel Banner** | Picsum image URLs, optional modal picker, new-note and retro; align `banner` field name with your Pixel Banner config. |
 
 Detailed settings labels, behavior, and UX live in [UI.md](UI.md). **Autosidia** (see below) is the separate registry for sharing keyword presets and other configs.
 
@@ -54,7 +64,8 @@ Detailed settings labels, behavior, and UX live in [UI.md](UI.md). **Autosidia**
 | [UI.md](UI.md) | User interface: settings, commands, and per-feature behavior. |
 | [API.md](API.md) | Surfaces for integration (Obsidian APIs, web/registry, external services). |
 | [AGENTS.md](AGENTS.md) | Guidance for AI coding agents working in this repo. |
-| [LICENSE.txt](LICENSE.txt) | License terms. |
+| [PLANS.md](PLANS.md) | Long-term phases and strategy (vs [TODO](TODO.md) near-term). |
+| [LICENSE.txt](LICENSE.txt) | Apache 2.0 full text. |
 | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community expectations. |
 | [TODO.md](TODO.md) | Task checklist. |
 | [CHANGELOG.md](CHANGELOG.md) | Version history. |

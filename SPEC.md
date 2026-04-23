@@ -11,29 +11,31 @@ This document is the project specification: installation, dependencies, how Auto
 
 ### From source (development)
 
-1. Clone this repository and install dependencies (see [CONTRIBUTING.md](CONTRIBUTING.md) for the exact commands used in this project — typically `npm install` in the plugin root for an Obsidian TypeScript project).
-2. Build with the project’s build script (commonly `npm run build`); for iteration, `npm run dev` may be available for a watch build.
-3. Link or copy the build output into your vault’s `.obsidian/plugins/autosidian/` path per [Obsidian’s plugin dev docs](https://docs.obsidian.md/Plugins/Getting+started/Build+a+plugin).
+1. Clone the repository, then `npm install` and `npm test` (TypeScript `noEmit` + production `esbuild` bundle; see [package.json](package.json) scripts).
+2. Watch mode: `npm run dev` — rebuilds `main.js` on change; reload the plugin in Obsidian after each build.
+3. Install into a **test vault** by copying or symlinking the project into `<Vault>/.obsidian/plugins/autosidian/`. You need `manifest.json`, `main.js`, and `styles.css` in that folder. See [Obsidian’s plugin dev docs](https://docs.obsidian.md/Plugins/Getting+started/Build+a+plugin).
 
-The repository may not yet include application code; when it does, CONTRIBUTING will list the authoritative scripts.
+**Minimum app version** is [manifest.json](manifest.json) `minAppVersion` (currently `1.6.0`); [versions.json](versions.json) maps releases to it.
 
 ## Prerequisites and dependencies
 
-- **Obsidian:** Minimum app/API version TBD; should be set to match the `manifest.json` `minAppVersion` once the plugin is implemented.
+- **Obsidian:** `minAppVersion` in [manifest.json](manifest.json) (currently **1.6.0**). Keep in sync with [versions.json](versions.json) when cutting releases.
 - **Required community plugins (always):**
   - [Folder Notes](https://github.com/LostPaul/obsidian-folder-notes) — for folder-note and folder click behavior.
   - [Waypoint](https://github.com/IdreesInc/Waypoint) — for `%% Waypoint %%` / `%% Begin Waypoint %%` behavior.
   - [Iconize](https://florianwoelki.github.io/obsidian-iconize/) — for folder icons.
-  - [Pixel Banner](https://github.com/jparkerweb/pixel-banner) — for page banners; related product context: [eQuillabs](https://www.equilllabs.com/projects/pixel-banner/).
+  - [Pixel Banner](https://github.com/jparkerweb/pixel-banner) — for page banners; the plugin’s Obsidian `id` is `pexels-banner` (see its `manifest.json`). Related: [eQuillabs](https://www.equilllabs.com/projects/pixel-banner/).
 
-Autosidian should detect missing plugins and surface a clear notice in settings (exact copy TBD in implementation).
+**Manifest IDs (for support and this codebase):** `folder-notes`, `waypoint`, `obsidian-icon-folder` (Iconize), `pexels-banner` (Pixel Banner). Autosidian treats a dependency as present when the plugin is **enabled**; if missing, the settings tab shows a short notice.
 
 ## Functional summary
 
-- **Auto–Folder Notes:** On folder creation, new non-folder notes, and optional vault-wide retroactive pass, create or align folder notes with Folder Notes conventions. Context menu: turn a note into a folder whose folder note is that file.
-- **Auto–Waypoint:** On new folder notes and optional retroactive pass, insert `%% Waypoint %%` where missing when the folder has child folders and the note does not already contain Waypoint’s expanded block (`%% Begin Waypoint %%` …). Per-minute rate limit for retroactive runs.
-- **Auto–Iconize:** For folders without an icon, choose emoji from keyword rules (editable lists, defaults from curated keyword→emoji mappings). Optional new/rename and retroactive passes with a per-minute cap.
-- **Auto–Pixel Banner:** UI to search for banner images and attach candidates; optional automatic and retroactive assignment with a per-minute cap.
+- **Auto–Folder Notes (v0.2+):** `Name/Name.md` for new folders (toggle), new-note → folder conversion (toggle), retroactive queue, command + file menu. [UI.md](UI.md#autofolder-notes).
+- **Auto–Waypoint (v1.0+):** When a **folder note** is also a `Name/Name.md` and its **parent folder** has at least one **subfolder**, insert `%% Waypoint %%` (after front matter) if the body has neither the short token nor `%% Begin Waypoint %%`. Triggers: new such files, or when a new **subfolder** is created (optional toggle). Per-minute retro queue. [UI.md](UI.md#autowaypoint) · [waypoint](src/waypoint/).
+- **Auto–Iconize (v1.0+):** Longest **keyword** match on the **folder name** → set configurable front matter (default `icon`) on the **folder note**; built-in + JSON-imported rules. New/rename folder + per-minute retro. [UI.md](UI.md#autoiconize) · [iconize](src/iconize/).
+- **Auto–Pixel Banner (v1.0+):** Sets **`banner`** in front matter to a **Picsum** HTTPS URL. New note (optional), retro, and a command that opens a modal of candidate URLs. [UI.md](UI.md#autopixel-banner) · [pixelBanner](src/pixelBanner/).
+- **Presets (v1.0+):** Copy/export JSON, import partial merge. [presets](src/presets/presetIO.ts).
+- **Autosidia (stub, v1.0+):** Optional `registryBaseUrl` and **Ping** → `GET /health` only; no hosted service in-repo.
 
 Details: [UI.md](UI.md). Integration points: [API.md](API.md). Structure: [ARCHITECTURE.md](ARCHITECTURE.md).
 
@@ -43,14 +45,15 @@ Details: [UI.md](UI.md). Integration points: [API.md](API.md). Structure: [ARCHI
 
 Intended capabilities:
 
-- **Import / export** of preset files from the plugin settings (formats TBD, likely JSON).
-- **Share** to submit a preset to the Autosidia registry (subject to moderation/spam policy TBD).
-- **Browse** (optional) a catalog of public presets and apply or fork them.
+- **Import / export** of preset files from the plugin — JSON in v1.0 ([presetIO.ts](src/presets/presetIO.ts)); share/browse when the service exists.
+- **Share** to submit a preset to the Autosidia registry (subject to moderation — future).
+- **Browse** a catalog (future).
 
-URL, hosting, auth, and API version will be documented in [API.md](API.md) when the service exists. Until then, treat this section as a product outline.
+The plugin ships with **health check only** against `settings.autosidia.registryBaseUrl` + `/health` ([API.md](API.md#network-optional)). Full registry API, URL, and auth: future [API.md](API.md) updates.
 
 ## Related documents
 
+- [PLANS.md](PLANS.md) — Phased product roadmap and long-term horizon (companion to [TODO.md](TODO.md)).
 - [README.md](README.md) — Short overview and links.
 - [ARCHITECTURE.md](ARCHITECTURE.md) — System architecture.
 - [UI.md](UI.md) — All UI and setting descriptions.
@@ -73,5 +76,6 @@ URL, hosting, auth, and API version will be documented in [API.md](API.md) when 
 | TODO.md | Tasks |
 | CHANGELOG.md | Release notes |
 | CONTRIBUTING.md | Contribution guide |
+| PLANS.md | Long-term product phases and roadmap |
 | SUPPORT.md | Support channels |
 | SECURITY.md | Vulnerability reporting |

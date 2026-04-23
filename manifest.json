@@ -1,0 +1,10 @@
+{
+	"id": "autosidian",
+	"name": "Autosidian",
+	"version": "1.0.0",
+	"minAppVersion": "1.6.0",
+	"description": "Automate Folder Notes, Waypoint, Iconize, and Pixel Banner to reduce repetitive vault setup.",
+	"author": "Alex Peake",
+	"authorUrl": "https://github.com/lxpk",
+	"isDesktopOnly": false
+}

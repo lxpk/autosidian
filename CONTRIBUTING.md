@@ -11,8 +11,15 @@ Thanks for helping improve **Autosidian** and related docs. The **Autosidia** we
 ## Development
 
 1. [Build a plugin](https://docs.obsidian.md/Plugins/Getting+started/Build+a+plugin) — Official Obsidian plugin development guide.
-2. Clone the repository and install Node dependencies (when `package.json` is present, typically `npm install`).
-3. Build and test in a **dedicated test vault** with the required community plugins ([SPEC.md](SPEC.md#prerequisites-and-dependencies)) installed.
+2. In the repo root: `npm install` → `npm test` (required before commits per [AGENTS.md](AGENTS.md#pr-instructions)). For iteration, `npm run dev` and reload the plugin in your test vault.
+3. **Test vault (manual / E2E on Mac):** open the **`autosidian` vault** at  
+   `~/Library/Mobile Documents/iCloud~md~obsidian/Documents/autosidian`  
+   and set `AUTOSIDIAN_E2E_VAULT` to that folder when running [integration/E2E](e2e/README.md#which-vault-to-use-when-testing-in-the-app) so `npm run test:integration` syncs the build there. The default `e2e/fixture-vault` is for CI and users who do not set the variable.
+4. Use a **dedicated test vault** with the required community plugins from [SPEC.md](SPEC.md#prerequisites-and-dependencies) installed and **enabled** if you need the settings screen to show all-green dependency checks.
+
+**CI:** Pushes and PRs to `main` / `master` run `npm test` (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)) — **unit tests (vitest)** + **integration** (build, sync to [e2e/fixture-vault](e2e/fixture-vault/), verify manifest). Match that locally before opening a PR.
+
+**Releasing to the community store:** Follow [Obsidian’s plugin guidelines](https://github.com/obsidianmd/obsidian-releases/blob/master/PLUGIN_SUBMISSION.md); bump [manifest](manifest.json) / [versions.json](versions.json), update [CHANGELOG](CHANGELOG.md), and tag releases consistently.
 
 [AGENTS.md](AGENTS.md) has extra notes for AI-assisted contributors.
 

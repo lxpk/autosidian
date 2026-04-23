@@ -2,62 +2,73 @@
 
 This document describes the **Obsidian** user experience for the **Autosidian** plugin: settings, affordances, and per-feature behavior. The sharing web app **Autosidia** is specified in [SPEC.md](SPEC.md#autosidia-community-registry).
 
+## Autosidian settings tab (v1.0+)
+
+- **Header** — Short product description; required community plugins should be installed and **enabled** for automation to be meaningful.
+- **Dependency notice** — If any required plugin is not enabled, lists human-readable names and manifest IDs. If all are enabled, a brief confirmation line.
+- **Sections** — Auto–Folder Notes, then Auto–Waypoint, Auto–Iconize, Auto–Pixel Banner, then **Presets & Autosidia** (JSON copy/import, registry URL, health ping). See headings below in this file.
+- **Version** (read-only) — `settingsVersion` (3 after migration).
+
 ## Settings structure (convention)
 
-Settings are grouped by integrated plugin: **Folder Notes**, **Waypoint**, **Iconize** (automation in Autosidian may be labeled “Auto-Iconize” in the UI, but it drives the **Iconize** plugin), and **Pixel Banner**. Each group includes toggles for **new** and **retroactive** behavior where applicable, plus **rate limits** for background scans to avoid vault-wide freezes.
+Settings are grouped by integrated plugin: **Folder Notes** (first), **Waypoint**, **Iconize** (UI may say “Auto-Iconize” but the target is **Iconize**), **Pixel Banner**. Where applicable: **new** / **retroactive** behavior and **rate limits** for background work.
 
 ## Auto–Folder Notes
 
-Automates and extends [Folder Notes](https://github.com/LostPaul/obsidian-folder-notes).
+Automates and extends [Folder Notes](https://github.com/LostPaul/obsidian-folder-notes) using the usual layout **`FolderName/FolderName.md`**.
 
-### Settings and behavior
+### Settings and behavior (implemented)
 
-- **Auto–Folder Notes: New Folders** — When on, new folders get a folder note automatically.
-- **Auto–Folder Notes: New Notes** — When the user creates a new note that is *not* a folder, the plugin can convert the workflow so it becomes a folder with that note as its folder note (per product rules in implementation).
-- **Auto–Folder Notes: Retroactive** — When on, run a process that creates folder notes for folders that are missing one. Folder notes are notes whose name matches the parent folder, matching Folder Notes’ model (click the folder to open the note; platform-specific modifier for alternate actions, per Folder Notes).
-- **Context menu** — Action on a selected note: **convert to folder** with the current file as the folder’s folder note (wording in-app may vary).
+- **New folders** — When on, on every new `TFolder` (except vault root), if `Name/Name.md` does not exist, it is created (empty). Skipped for paths in the internal reentry set while converting a note.
+- **New notes → folder with folder note** — When on, on `vault` `create` for a new `.md` `TFile` that is **not** already a folder note (`file.basename === parent folder name` with non-root `TFolder` parent), the note is turned into a folder of the same name with that file moved to `Name/Name.md` (content preserved).
+- **Retroactive (missing folder notes)** — When toggled on, fills a queue of non-root folders that have no `Name/Name.md` and processes up to *Retro max per minute* (slider 1–120). Toggling on shows a **Notice** with queue size (or that none are missing). When the queue empties, the internal timer stops until you toggle off/on or run again after reload. Changing the rate restarts the timer with a new interval.
+- **Command** — *Convert active note to folder with folder note* (command palette) — only when the active file is a `.md` that is not already a folder-note file.
+- **File menu** — On a non–folder-note `.md` file, **Convert to folder with folder note** (section `autosidian`).
+- **Context menu (folder)** — (Future / optional; file menu covers the same for files.)
+
+**Folder note detection:** a markdown file is a folder note when its parent is a non-root folder and the note’s base name (without extension) equals the parent folder’s name.
 
 ## Auto–Waypoint
 
-Extends [Waypoint](https://github.com/IdreesInc/Waypoint).
+Extends [Waypoint](https://github.com/IdreesInc/Waypoint). Inserts the short `%% Waypoint %%` after YAML front matter when needed ([waypointMarkdown.ts](src/waypoint/waypointMarkdown.ts)).
 
-- **Button on folder notes** — If a folder note lacks a waypoint where one is needed, show a control to add it (exact placement: inline with the note or in a ribbon/command — implementation detail).
-- **Auto–Waypoints: New** — Add a waypoint to all new folder notes that should have one.
-- **Auto–Waypoints: Retroactive** — Add waypoints to existing folder notes that should have one but do not.
-- **Auto–Waypoints: Retroactive rate limit** — Maximum number of waypoints to add per minute during retroactive passes (reduces I/O and UI churn).
+### Settings (in-app)
 
-### Waypoint text rules
+- **New folder notes** — On `create` of a folder-note `.md` whose parent has **at least one subfolder**, insert if the body has neither the short token nor `%% Begin Waypoint %%`.
+- **When a subfolder is created** — After `create` of a new `TFolder` under a parent, patch the **parent’s** folder note if a waypoint is now required.
+- **Retro** + **/ minute** — One vault `modify` per tick for queued folder notes.
+- **Command** — *Add %% Waypoint %% to active folder note (if needed)*. **File menu** on `.md` (section `autosidian`).
 
-- Insert `%% Waypoint %%` in folder notes that have **child folders** and that **do not** already contain a Waypoint **expanded** section beginning with `%% Begin Waypoint %%` (the Waypoint plugin replaces the short token with the expanded block). If that expanded section is already present, do not duplicate.
+## Auto–Iconize
 
-## Auto–Iconize (Iconize automation)
+Targets [Iconize](https://florianwoelki.github.io/obsidian-iconize/) by writing front matter (default field **`icon`**) on the **folder note**; **longest** keyword match on the **folder name** wins. Enable Iconize’s use of **front matter / note properties** in **Iconize’s** own settings.
 
-Automates [Iconize](https://florianwoelki.github.io/obsidian-iconize/) by assigning an emoji to folders that have no icon yet, using **keywords** in the folder title (or note title, per implementation).
+### Settings (in-app)
 
-### Settings and behavior
+- **Enable** / **Skip if icon present** / **Field name** / **New or renamed folders** / **Retro** + rate.
+- **Rules** — Ten built-in keyword→icons in [settings.ts](src/settings.ts); **JSON** (Copy/Import) to bulk-edit in **Presets & Autosidia**.
 
-- **Auto-Icon: Button** — Apply an icon to the **currently selected** item (folder or as supported).
-- **Auto-Icon: New** — When on, add emoji icons to newly created or **renamed** folders that do not already have an icon.
-- **Auto-Icon: Retroactive** — When on, background scan of folders that still lack an icon; apply gradually.
-- **Auto-Icon: Scan rate limit** — Max icons to assign per minute during retroactive or bulk work.
+### Command
 
-### Icon sets (keyword → emoji)
-
-- Build an **editable list** of keyword → emoji rules (one or more “sets” the user can switch or merge). Priority order and conflict resolution (longest match, first match) TBD in implementation.
-- **Default set** may be **prepopulated** from public keyword→emoji tables that approximate common English words to emoji.
-- **Create, import, export** of sets for specialized domains. Shared sets can be published via **Autosidia** and imported from the community registry; see [SPEC.md](SPEC.md#autosidia-community-registry).
+- *Apply keyword icon to selected folder (folder note)* when the **active** file is a folder note.
 
 ## Auto–Pixel Banner
 
-Works with [Pixel Banner](https://github.com/jparkerweb/pixel-banner) to place header images. Reference: [eQuillabs — Pixel Banner](https://www.equilllabs.com/projects/pixel-banner/).
+[Pixel Banner](https://github.com/jparkerweb/pixel-banner) — sets **`banner`** to an **HTTPS** URL ([Picsum](https://picsum.photos) in v1.0, [picsum.ts](src/pixelBanner/picsum.ts)). Align the field name with Pixel Banner’s *custom field* settings if you change it. [eQuillabs — Pixel Banner](https://www.equillabs.com/projects/pixel-banner/).
 
-### Settings and behavior
+### Settings (in-app)
 
-- **Autoimage: Button** — Adds a **web image search** (or image discovery) action near Pixel Banner’s existing controls so the user can pick header images; store **multiple candidates** for selection when appropriate.
-- **Autoimage: New** — When on, add a banner image for new pages (scope: all notes or configurable patterns — TBD).
-- **Autoimage: Retroactive** — Scan pages missing a banner and add images over time.
-- **Autoimage: Scan rate limit** — Maximum automatic banner assignments per minute.
+- **Enable** / **Banner field** / **New notes: set URL** / **Ignore title** / **Candidate count (1–5)** for the picker / **Retro** + rate. Missing notes found via [metadataCache](https://docs.obsidian.md) ([listMissingBanner.ts](src/pixelBanner/listMissingBanner.ts)).
+
+### Command
+
+- *Pick banner from image candidates (Picsum) — current note* — modal; choose a URL, then [processFrontMatter](https://docs.obsidian.md).
+
+## Presets & Autosidia (section)
+
+- **Copy** / **Import** full settings JSON — [presetIO](src/presets/presetIO.ts).
+- **Registry URL** + **Ping** — [AutosidiaClient](src/autosidia/AutosidiaClient.ts) `GET /health` (optional, future server).
 
 ## Accessibility and safety
 
-- Long-running or network-backed operations should be **cancellable** where feasible and must respect **rate limits** in settings. Exact progress UI (status bar, notice) TBD.
+- Retro queues and rate limits; [safePath](src/safePath.ts) skips **`.obsidian`**. **Network** (Picsum, Autosidia): [SECURITY.md](SECURITY.md).

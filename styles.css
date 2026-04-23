@@ -1,0 +1,8 @@
+.autosidian-settings-notice {
+	color: var(--text-error);
+	margin: 0.75em 0;
+}
+
+.autosidian-ok {
+	color: var(--text-success);
+}

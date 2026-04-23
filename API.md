@@ -4,29 +4,51 @@ Surfaces for **Autosidian** (Obsidian plugin) and, when implemented, the **Autos
 
 ## Obsidian
 
-- **Plugin API** — Standard Obsidian `Plugin` lifecycle: `onload` / `onunload`, `addSettingTab`, `registerEvent` for `vault`/`workspace` events, and commands where appropriate. Exact command IDs TBD.
-- **Manifest** — `manifest.json` exposes `id`, `name`, `version`, and `minAppVersion`; must stay aligned with [SPEC.md](SPEC.md#prerequisites-and-dependencies).
+- **Plugin API** — Standard Obsidian `Plugin` lifecycle: `onload` / `onunload`, `addSettingTab`, `registerEvent` for `vault` / `workspace` events, and `addCommand` where appropriate.
+- **Commands (v1.0+)** —
+
+| id | User-visible name | Notes |
+|----|-------------------|--------|
+| `autosidian-convert-note-to-folder` | Convert active note to folder with folder note | Active file must be eligible `.md`. |
+| `autosidian-add-waypoint` | Add %% Waypoint %% to active folder note (if needed) | Active file. |
+| `autosidian-apply-icon-selection` | Apply keyword icon to selected folder (folder note) | Active file must be a folder note. |
+| `autosidian-pick-banner-candidates` | Pick banner from image candidates (Picsum) — current note | Modal with URL choices. |
+
+- **Manifest** — [manifest.json](manifest.json) exposes `id`, `name`, `version`, and `minAppVersion`; must stay aligned with [SPEC.md](SPEC.md#prerequisites-and-dependencies).
+- **Front matter** — [FileManager](https://docs.obsidian.md) `processFrontMatter` for `icon` (Iconize) and `banner` (Pixel Banner) fields (names configurable in settings).
+
+## Community plugin manifest IDs
+
+When checking whether a dependency is **enabled**, use the exact `id` from each plugin’s `manifest.json`:
+
+| Plugin     | `id`                  |
+|------------|------------------------|
+| Folder Notes | `folder-notes`       |
+| Waypoint   | `waypoint`            |
+| Iconize    | `obsidian-icon-folder` |
+| Pixel Banner | `pexels-banner`     |
+
+`app.plugins` is not declared on the public `App` type; [requiredPlugins](src/deps/requiredPlugins.ts) uses a narrow runtime cast to read `enabledPlugins`.
 
 ## Partner plugins
 
-Integration is with **public** behavior of these plugins, not private internals:
+Integration is with **public** behavior of these plugins, not private Iconize/Pixel internal classes:
 
-- [Folder Notes](https://github.com/LostPaul/obsidian-folder-notes) — File naming and layout conventions for folder notes.
-- [Waypoint](https://github.com/IdreesInc/Waypoint) — `%% Waypoint %%` and expanded waypoint blocks.
-- [Iconize](https://florianwoelki.github.io/obsidian-iconize/) — Icon assignment to paths or files as documented by the plugin.
-- [Pixel Banner](https://github.com/jparkerweb/pixel-banner) — Front matter or settings fields the plugin reads for banner images.
+- [Folder Notes](https://github.com/LostPaul/obsidian-folder-notes) — `Name/Name.md` layout.
+- [Waypoint](https://github.com/IdreesInc/Waypoint) — `%% Waypoint %%` / `%% Begin Waypoint %%`.
+- [Iconize](https://florianwoelki.github.io/obsidian-iconize/) — We set the **`icon` front matter** on **folder notes**; user should enable Iconize’s front matter / properties integration for folder notes.
+- [Pixel Banner](https://github.com/jparkerweb/pixel-banner) — We set **`banner`** (or a custom name) in front matter, usually as **HTTPS** URLs. Pixel Banner can read [multiple formats](https://github.com/jparkerweb/pixel-banner); we output plain URLs (see [pictures](src/pixelBanner/picsum.ts) seeds).
 
-If a future major version of a partner plugin changes its contract, Autosidian should version-gate or adapt (documented in CHANGELOG).
+## Network (optional)
 
-## Network (optional features)
+- **Picsum** — `https://picsum.photos/seed/.../1200/400` for Auto–Pixel Banner. No personal key; [picsum.photos](https://picsum.photos) is a public placeholder service. Apply your own [SECURITY.md](SECURITY.md) and vault policy.
+- **Autosidia** — [AutosidiaClient](src/autosidia/AutosidiaClient.ts) `GET {base}/health` when you configure `registryBaseUrl` and use **Test** in settings.
+- **Future** — Image providers with API keys: use Obsidian [Secret storage](https://docs.obsidian.md) when implemented.
 
-- **Image search or image APIs** for Auto–Pixel Banner: provider TBD. Must use HTTPS where applicable, respect **rate limits** and **API keys** via Obsidian’s secure storage if keys are required.
-- **Autosidia HTTP API** — For preset upload, list, and download. Versioned REST or GraphQL to be defined; include authentication model if accounts exist. **Not live until the service is deployed** — this document will be updated with base URL, `Authorization` shape, and error codes.
+## Presets (JSON)
 
-## File formats (presets)
-
-- **Keyword sets** and **settings exports** are expected to be **JSON** with a `version` field for forward compatibility. Schema details will live in code (`schemas/` or types) when the project exists.
+- [presetIO.ts](src/presets/presetIO.ts) — `exportSettingsToJson`, `importPresetJson`, `mergeImportedIntoSettings`. Schema wrapper `{ "schema": "autosidian-preset", "version": 1, "data": { ... } }` or a raw partial of [AutosidianSettings](src/settings.ts).
 
 ## Security reference
 
-- Transport: TLS for all Autosidia calls. For vulnerability reporting, see [SECURITY.md](SECURITY.md).
+- TLS for public HTTPS to Picsum and to Autosidia when deployed. For vulnerability reporting, see [SECURITY.md](SECURITY.md).

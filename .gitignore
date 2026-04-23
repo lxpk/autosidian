@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build output
+main.js
+main.js.map
+
+# E2E — built plugin copy in fixture vault (synced by scripts; keep .gitkeep)
+e2e/fixture-vault/.obsidian/plugins/autosidian/*
+!e2e/fixture-vault/.obsidian/plugins/autosidian/.gitkeep
+
+# E2E temp / reports (Puppeteer does not need a local browser cache; keep ignored paths generic)
+e2e/test-results/
+test-results/
+
+# Obsidian dev cache in fixture (regenerated locally)
+e2e/fixture-vault/.obsidian/workspace.json
+e2e/fixture-vault/.obsidian/workspace-mobile.json
+
+# OS / editor
+.DS_Store
+*.log

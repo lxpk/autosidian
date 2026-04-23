@@ -1,0 +1,93 @@
+import type { TFile } from "obsidian";
+import { Notice } from "obsidian";
+import type AutosidianPlugin from "../main";
+import { buildWaypointPatchedContent } from "./waypointCheck";
+
+function clampPpm(n: number): number {
+	return Math.max(1, Math.min(120, Math.floor(n)));
+}
+
+export class RetroactiveWaypointQueue {
+	private q: TFile[] = [];
+	private tick: number | null = null;
+	private readonly plugin: AutosidianPlugin;
+
+	constructor(p: AutosidianPlugin) {
+		this.plugin = p;
+	}
+
+	refresh(announce = false, queue: TFile[]): void {
+		if (!this.plugin.settings.waypoint.retro) {
+			this.halt();
+			return;
+		}
+		if (this.q.length === 0 || announce) {
+			this.q = queue;
+			if (announce) {
+				if (this.q.length) {
+					new Notice(`Autosidian: Waypoint retro — ${this.q.length} note(s) in queue.`);
+				} else {
+					new Notice("Autosidian: Waypoint retro — no notes need a waypoint.");
+				}
+			}
+		}
+		this.ensure();
+	}
+
+	restartTimer(): void {
+		if (this.tick !== null) {
+			window.clearInterval(this.tick);
+			this.tick = null;
+		}
+		if (this.plugin.settings.waypoint.retro) {
+			this.ensure();
+		}
+	}
+
+	private ensure(): void {
+		if (this.tick !== null) {
+			return;
+		}
+		if (!this.plugin.settings.waypoint.retro) {
+			return;
+		}
+		if (this.q.length === 0) {
+			return;
+		}
+		const ms = Math.max(1, Math.round(60_000 / clampPpm(this.plugin.settings.waypoint.retroPerMinute)));
+		this.tick = window.setInterval(() => {
+			void this.pulse();
+		}, ms);
+		this.plugin.registerInterval(this.tick);
+	}
+
+	private async pulse(): Promise<void> {
+		if (!this.plugin.settings.waypoint.retro) {
+			this.halt();
+			return;
+		}
+		const f = this.q.shift();
+		if (f) {
+			try {
+				const next = await buildWaypointPatchedContent(f, f.vault);
+				if (next) {
+					await f.vault.modify(f, next);
+				}
+			} catch (e) {
+				console.error("[Autosidian] waypoint retro", e);
+			}
+		}
+		if (this.q.length === 0 && this.tick !== null) {
+			window.clearInterval(this.tick);
+			this.tick = null;
+		}
+	}
+
+	halt(): void {
+		if (this.tick !== null) {
+			window.clearInterval(this.tick);
+			this.tick = null;
+		}
+		this.q = [];
+	}
+}
