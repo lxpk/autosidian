@@ -58,4 +58,9 @@ flowchart LR
 - **Keyword set** — Named list of `{ keyword, emoji }` or similar; import/export for Autosidia.
 - **Preset bundle** — Optional aggregate export (settings subset + keyword sets) for sharing.
 
+## Build & delivery
+
+- **esbuild** bundles [src/main.ts](src/main.ts) to `main.js` at the repo root alongside [manifest.json](manifest.json) and [styles.css](styles.css).
+- **GitHub Actions** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs tests on every push/PR; pushes to `main` or `master` can publish a **GitHub Release** with those three files when the manifest version is new (see [CONTRIBUTING.md](CONTRIBUTING.md#automated-github-releases-brat--manual-install--updater)).
+
 See [API.md](API.md) for external interfaces.

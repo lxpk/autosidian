@@ -26,7 +26,7 @@ Prefer **small, focused** edits; match existing tone in each document.
 
 Run these after substantive changes (and before pushing / opening a PR):
 
-1. **`npm test`** — Runs **vitest**, then **integration** (`npm run build`, sync plugin into the E2E vault, verify manifest). Fix failures.
+1. **`npm test`** — Runs **vitest**, then **integration** (`npm run build`, sync plugin into the E2E vault, verify manifest). Fix failures. On **push to `main`/`master`**, GitHub Actions also runs a **release** job that creates a GitHub Release when you bump `manifest.json` / `package.json` / `versions.json` (see [CONTRIBUTING.md](CONTRIBUTING.md#automated-github-releases-brat--manual-install--updater)).
 2. **E2E vault** — On **macOS**, if `~/Library/Mobile Documents/iCloud~md~obsidian/Documents/autosidian` exists, **`npm test` syncs the built plugin there automatically** ([e2e/helpers/paths.mjs](e2e/helpers/paths.mjs)). On Linux (e.g. CI) or when that folder is missing, the repo’s [e2e/fixture-vault/](e2e/fixture-vault/) is used. To **force** the bundled fixture on a Mac: `AUTOSIDIAN_E2E_USE_FIXTURE=1 npm test`. To use another vault: set **`AUTOSIDIAN_E2E_VAULT`** ([e2e/README.md](e2e/README.md#which-vault-to-use-when-testing-in-the-app)).
 3. **Obsidian** — Open the **iCloud `autosidian`** vault (or whichever vault integration targeted), **reload** Autosidian (Community plugins → reload, or restart Obsidian), and **smoke-test** the behavior you changed.
 4. Optional — **`npm run test:e2e`** for automated desktop UI (local; see [e2e/README.md](e2e/README.md)).

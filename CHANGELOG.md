@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **CI** — [`.github/workflows/ci.yml`](.github/workflows/ci.yml): **release** job on push to `main`/`master` creates a **GitHub Release** with plugin assets when the manifest version tag is new; validates `manifest.json` / `package.json` / `versions.json` alignment. [CONTRIBUTING.md](CONTRIBUTING.md), [README.md](README.md).
 - **Iconize** — **File menu** on folder notes: *Auto-iconize best-matching emoji (from folder name)*; **Settings** shows browsable **emoji / keyword lookup** + synonym sample ([`emojiLookupTableSection.ts`](src/ui/emojiLookupTableSection.ts), [`applyIconFrontmatter.ts`](src/iconize/applyIconFrontmatter.ts) `applyBestMatchingEmojiToFolder`).
 - **Iconize** — **Match most similar emoji** toggle: [emojilib](https://github.com/muan/emojilib) `emoji-en-US.json` + IDF-weighted token scoring, optional 1-edit fuzzy match, [synonymLexicon](src/iconize/synonymLexicon.ts). **Diverse** + **folder row sync** as before ([`emojiSimilarity.ts`](src/iconize/emojiSimilarity.ts), [`keywordMatch.ts`](src/iconize/keywordMatch.ts)). Dependency: `emojilib`. [UI.md](UI.md) / [API.md](API.md).
 - **UI** — [iconizeRuleTable.ts](src/ui/iconizeRuleTable.ts): in-app **keyword → icon** table (add/remove). **Background retro queues** — stop all (button + [command](src/main.ts) `autosidian-stop-all-retro-queues`); [queue `getQueueLength()`](src/waypoint/retroactiveWaypointQueue.ts) (all four retro types). **Waypoint** settings show approximate queue size when the tab is open. [UI.md](UI.md), [API.md](API.md).

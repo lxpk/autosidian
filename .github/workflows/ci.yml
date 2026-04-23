@@ -1,13 +1,22 @@
-name: CI
+name: CI & Release
 
 on:
   push:
     branches: [main, master]
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   test:
+    name: Test & build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,5 +31,89 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Test (unit + typecheck + build)
+      - name: Test (unit + typecheck + build + fixture integration)
+        env:
+          AUTOSIDIAN_E2E_USE_FIXTURE: "1"
         run: npm test
+
+  release:
+    name: GitHub Release (Obsidian updater)
+    needs: test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout (full history + tags)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        env:
+          AUTOSIDIAN_E2E_USE_FIXTURE: "1"
+        run: npm run build
+
+      - name: Verify version metadata
+        id: meta
+        run: |
+          set -euo pipefail
+          MV=$(jq -r .version manifest.json)
+          PV=$(jq -r .version package.json)
+          MIN=$(jq -r .minAppVersion manifest.json)
+          if [ "$MV" != "$PV" ]; then
+            echo "::error::manifest.json version ($MV) must match package.json version ($PV)"
+            exit 1
+          fi
+          if ! jq -e --arg v "$MV" '.[$v] == $min' --arg min "$MIN" versions.json >/dev/null 2>&1; then
+            echo "::error::versions.json must contain an entry for \"$MV\" with minAppVersion \"$MIN\" (see CONTRIBUTING.md)"
+            jq --arg v "$MV" --arg min "$MIN" -e '.[$v] == $min' versions.json || jq . versions.json
+            exit 1
+          fi
+          echo "version=${MV}" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch tags from origin
+        run: git fetch origin --tags --force
+
+      - name: Skip if tag already exists
+        id: exists
+        run: |
+          VERSION="${{ steps.meta.outputs.version }}"
+          if git rev-parse "refs/tags/${VERSION}" >/dev/null 2>&1; then
+            echo "Tag ${VERSION} already exists — skipping release (bump manifest.json, package.json, and versions.json to publish a new version)."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release
+        if: steps.exists.outputs.skip != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ steps.meta.outputs.version }}
+          name: Autosidian ${{ steps.meta.outputs.version }}
+          body: |
+            **Install:** In Obsidian → Settings → Community plugins, use **Browse** (if listed) or add via GitHub / BRAT using this repo.
+
+            **Manual install:** Download `main.js`, `manifest.json`, and `styles.css` from the assets below into `.obsidian/plugins/autosidian/` in your vault.
+
+            Built from commit [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }}).
+          files: |
+            main.js
+            manifest.json
+            styles.css
+          generate_release_notes: true
+
+      - name: Note when release was skipped
+        if: steps.exists.outputs.skip == 'true'
+        run: echo "No new GitHub release (tag already exists for ${{ steps.meta.outputs.version }}). Bump version in manifest.json, package.json, and versions.json to publish again."

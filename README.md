@@ -6,6 +6,10 @@
 
 **License:** [Apache 2.0](LICENSE.txt) — SPDX: `Apache-2.0` (see appendix in file for copyright line).
 
+## CI & GitHub Releases
+
+Pushes to **`main`** (or **`master`**) run [GitHub Actions](.github/workflows/ci.yml): **tests**, then a **release** step that publishes a [GitHub Release](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases) with `main.js`, `manifest.json`, and `styles.css` when the **manifest version is new** (no existing git tag with that name). Bump **`manifest.json`**, **`package.json`**, and **`versions.json`** together for each public version (see [CONTRIBUTING.md](CONTRIBUTING.md#automated-github-releases-brat--manual-install--updater)). That layout is what **BRAT**, manual installs from GitHub, and Obsidian’s **community plugin updater** expect once the plugin is listed.
+
 ## Requirements
 
 Install and enable the following **community plugins** (Autosidian does not replace them; it automates and extends how you use them):
