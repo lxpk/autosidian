@@ -35,6 +35,10 @@ TypeScript + esbuild, manifest, required-plugin notice, [CI](.github/workflows/c
 
 [AutosidiaClient](src/autosidia/AutosidiaClient.ts) + [preset I/O](src/presets/presetIO.ts). **Next:** real backend, auth, catalog API — new repo or `apps/autosidia/` when you build it. Update [SPEC](SPEC.md#autosidia-community-registry) with URLs at launch.
 
+## Phase 7 — Hierarchical folder styling *(planned)*
+
+Per-depth visual styling for hierarchical folders across **graph view**, **file explorer**, and folder-note surfaces. Goal: make folder hierarchy *legible at a glance* — root folders dominate the graph; deeper folders fade. **Scope:** per-depth style table (node size, color, font weight, icon scale), max-depth cutoff, per-surface toggles. **Mechanism:** dynamic CSS variables emitted into [styles.css](styles.css) keyed by depth class on the explorer/graph DOM, plus optional `depth` (or similar) front-matter writes on folder notes for downstream tools. **Interactions:** composes with [Auto–Iconize](src/iconize/) (icon scale per depth) and Pixel Banner / [Auto–Cover](src/autoCover/) (banner styling per depth). **Exit:** new `src/hierarchyStyle/` module + settings section in [UI.md](UI.md#hierarchical-folder-styling-planned), retro pass for existing folders, vitest for the depth-class resolver.
+
 ## Longer horizon
 
 i18n, mobile soak tests, index workers, optional 5th-party integrations — after core automation proven stable. [TODO.md](TODO.md) is clear; check there if new tasks are added.

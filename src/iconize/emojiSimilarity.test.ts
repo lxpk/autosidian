@@ -28,4 +28,10 @@ describe("emoji lookup table (settings / search)", () => {
 		const joined = rows.map((r) => r.emoji + r.keywordsSample).join(" ");
 		expect(joined.toLowerCase()).toContain("pizza");
 	});
+
+	it("searchEmojiLookupTable returns the full library when limit is Infinity", () => {
+		const rows = searchEmojiLookupTable("", Number.POSITIVE_INFINITY);
+		const stats = getEmojiLookupStats();
+		expect(rows.length).toBe(stats.total);
+	});
 });

@@ -44,6 +44,7 @@ Copy `manifest.json`, `main.js`, and `styles.css` into the vault’s `.obsidian/
 | **Auto–Waypoint** | Injects `%% Waypoint %%` when a folder note has subfolders and no waypoint; new-note + subfolder create + optional retro, rate-limited. |
 | **Auto–Iconize** | Longest-keyword match; writes `icon` front matter on folder notes (import/export keyword JSON in settings). |
 | **Auto–Pixel Banner** | Picsum image URLs, optional modal picker, new-note and retro; align `banner` field name with your Pixel Banner config. |
+| **Hierarchical folder styling** *(planned)* | Per-depth aesthetic tweaks for hierarchical folders — e.g. larger graph nodes for root folders, scaled icons, color/weight per level. |
 
 Detailed settings labels, behavior, and UX live in [UI.md](UI.md). **Autosidia** (see below) is the separate registry for sharing keyword presets and other configs.
 

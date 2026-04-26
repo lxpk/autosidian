@@ -1,6 +1,18 @@
 /** Pixel Banner: field name in YAML (user may have customized in Pixel Banner; default matches docs). */
 export const DEFAULT_BANNER_FIELD = "banner";
 
+/** Obsidian built-in `cover` property; used by Bases Cards view and Publish previews. */
+export const DEFAULT_COVER_FIELD = "cover";
+
+/**
+ * Image search backend for Auto–Cover.
+ * - `auto`: try Wikipedia first (no key, page topic match), then Openverse (free).
+ * - `wikipedia`: REST page summary `originalimage` / `thumbnail`.
+ * - `openverse`: openverse.engineering image search (no key required).
+ * - `pexels`: Pexels search; requires `pexelsApiKey`.
+ */
+export type CoverProvider = "auto" | "wikipedia" | "openverse" | "pexels";
+
 export interface WaypointSettings {
 	/** On new folder note file: insert %% Waypoint %% if the folder has subfolders. */
 	newFolderNotes: boolean;
@@ -48,6 +60,17 @@ export interface IconizeSettings {
 	 * to pick the best-fitting emoji for the **folder name** (after your table rules, before default / diverse).
 	 */
 	matchMostSimilarEmoji: boolean;
+	/**
+	 * Per-emoji user keyword overrides edited in the in-app **Emoji & keyword lookup** table.
+	 * Each entry maps a single grapheme emoji to extra English keywords (lowercased tokens).
+	 *
+	 * Used in **two** places at resolve time:
+	 * 1. As additional longest-match keyword → icon rules (always on, even if `matchMostSimilarEmoji` is off).
+	 * 2. As a strong score boost for the emojilib-based **most similar** match (only when `matchMostSimilarEmoji` is on).
+	 *
+	 * Empty values (after trim) and whole-empty arrays are dropped on save so the JSON stays small.
+	 */
+	customEmojiKeywords: Record<string, string[]>;
 }
 
 export interface PixelBannerSettings {
@@ -62,6 +85,30 @@ export interface PixelBannerSettings {
 	candidateCount: number;
 	/** If true, ignore the note title when picking default keywords. */
 	ignoreTitleForSeed: boolean;
+}
+
+export interface AutoCoverSettings {
+	enabled: boolean;
+	/** Front matter key for the cover image (Obsidian built-in is `cover`). */
+	coverField: string;
+	/** Image search provider; `auto` tries free providers in order. */
+	provider: CoverProvider;
+	/** Pexels API key (only used when `provider === "pexels"`); blank by default. */
+	pexelsApiKey: string;
+	/** New note: when `cover` is unset, do an image search and write the URL. */
+	newNotes: boolean;
+	/** Retro: scan vault and fill missing covers at the configured rate. */
+	retro: boolean;
+	retroPerMinute: number;
+	/** Picks per candidate list (1–5) for the picker. */
+	candidateCount: number;
+	/** If true, ignore the note title when picking default search keywords. */
+	ignoreTitleForSeed: boolean;
+	/**
+	 * Skip notes whose `banner` (Pixel Banner) field is set; useful when running both features so
+	 * Pixel Banner notes keep their banner workflow and Auto–Cover handles only the rest.
+	 */
+	skipIfBannerPresent: boolean;
 }
 
 export interface AutosidiaSettings {
@@ -82,6 +129,7 @@ export interface AutosidianSettings {
 	waypoint: WaypointSettings;
 	iconize: IconizeSettings;
 	pixelBanner: PixelBannerSettings;
+	autoCover: AutoCoverSettings;
 	autosidia: AutosidiaSettings;
 }
 
@@ -99,7 +147,7 @@ const defaultIconizeRules: IconizeRule[] = [
 ];
 
 export const DEFAULT_SETTINGS: AutosidianSettings = {
-	settingsVersion: 3,
+	settingsVersion: 4,
 	folderNotes: {
 		newFolders: false,
 		newNotes: false,
@@ -125,6 +173,7 @@ export const DEFAULT_SETTINGS: AutosidianSettings = {
 		suggestDiverseUnmatched: true,
 		syncIconizeFolderRow: true,
 		matchMostSimilarEmoji: true,
+		customEmojiKeywords: {},
 	},
 	pixelBanner: {
 		enabled: false,
@@ -134,6 +183,18 @@ export const DEFAULT_SETTINGS: AutosidianSettings = {
 		retroPerMinute: 10,
 		candidateCount: 3,
 		ignoreTitleForSeed: false,
+	},
+	autoCover: {
+		enabled: false,
+		coverField: DEFAULT_COVER_FIELD,
+		provider: "auto",
+		pexelsApiKey: "",
+		newNotes: false,
+		retro: false,
+		retroPerMinute: 6,
+		candidateCount: 3,
+		ignoreTitleForSeed: false,
+		skipIfBannerPresent: true,
 	},
 	autosidia: {
 		registryBaseUrl: "",

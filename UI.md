@@ -6,12 +6,12 @@ This document describes the **Obsidian** user experience for the **Autosidian** 
 
 - **Header** — Short product description; required community plugins should be installed and **enabled** for automation to be meaningful.
 - **Dependency notice** — If any required plugin is not enabled, lists human-readable names and manifest IDs. If all are enabled, a brief confirmation line.
-- **Sections** — Auto–Folder Notes, Auto–Waypoint, Auto–Iconize (including in-app **keyword → icon** table), Auto–Pixel Banner, **Background retro queues** (stop all), then **Presets & Autosidia** (JSON copy/import, registry URL, health ping). See headings below in this file.
-- **Version** (read-only) — `settingsVersion` (3 after migration).
+- **Sections** — Auto–Folder Notes, Auto–Waypoint, Auto–Iconize (including in-app **keyword → icon** table), Auto–Pixel Banner, **Auto–Cover** (web image search → built-in `cover` property), **Background retro queues** (stop all), then **Presets & Autosidia** (JSON copy/import, registry URL, health ping). See headings below in this file.
+- **Version** (read-only) — `settingsVersion` (4 after migration).
 
 ## Settings structure (convention)
 
-Settings are grouped by integrated plugin: **Folder Notes** (first), **Waypoint**, **Iconize** (UI may say “Auto-Iconize” but the target is **Iconize**), **Pixel Banner**. Where applicable: **new** / **retroactive** behavior and **rate limits** for background work.
+Settings are grouped by integrated plugin: **Folder Notes** (first), **Waypoint**, **Iconize** (UI may say “Auto-Iconize” but the target is **Iconize**), **Pixel Banner**, then **Auto–Cover** (Obsidian's built-in `cover` property — no community plugin). Where applicable: **new** / **retroactive** behavior and **rate limits** for background work.
 
 ## Auto–Folder Notes
 
@@ -41,6 +41,8 @@ Extends [Waypoint](https://github.com/IdreesInc/Waypoint). Inserts the short `%%
 
 ## Auto–Iconize
 
+> ⚠️ **Experimental and incomplete.** May mis-match emojis, fail to sync with Iconize, or leave folder rows without icons. Review results before trusting on a large vault; keep backups.
+
 Targets [Iconize](https://florianwoelki.github.io/obsidian-iconize/) by writing the **`icon` property in YAML / Properties** on the **folder note** (`Folder/Folder.md`). **Longest** keyword match on the **folder name** wins, then (if **Match most similar emoji** is on) a best match from the [emojilib](https://github.com/muan/emojilib) English keyword set plus a built-in **synonym** list, then an optional **default** icon, then (if default is empty) a **diverse** stable emoji per name when that option is on.
 
 **Iconize’s** own settings: turn on the option that **reads icons from front matter / note properties** ([Use Frontmatter](https://florianwoelki.github.io/obsidian-iconize/files-and-folders/use-frontmatter.html) — the internal flag is `iconInFrontmatterEnabled`). The **field name in Iconize** must **match** Autosidian’s **Icon front matter field** (both default to `icon`). *Set icon* from the context menu usually writes Iconize’s `data` only, unless you enable Iconize’s **write / sync** option for front matter; Autosidian always writes the note. Use Iconize’s **Refresh icons from front matter** (v2.14+) if metadata changed while the plugin was off.
@@ -62,7 +64,18 @@ Targets [Iconize](https://florianwoelki.github.io/obsidian-iconize/) by writing 
 
 ### Settings — lookup tables
 
-Under **Auto–Iconize**, after the keyword table: **Emoji & keyword lookup** shows synonym samples, a **search** box over the bundled emojilib keywords, and a scrollable **emoji ↔ keywords** preview.
+Under **Auto–Iconize**, after the keyword table: **Emoji & keyword lookup (built-in + your keywords)** shows synonym samples, a **search** box, and a scrollable table of **all ~1,870** bundled emojis. Each row has three columns:
+
+1. **Emoji**.
+2. **Built-in keywords** (sample from [emojilib](https://github.com/muan/emojilib); read-only).
+3. **Your keywords** — free-text input, **comma-** or **space-separated** (e.g. `robot, ai, ml`). Saved to `iconize.customEmojiKeywords[<emoji>]` on change. Empty input removes the entry.
+
+Custom keywords feed the resolver in **two** ways:
+
+- **Always:** they act as additional **longest-match** keyword → icon rules alongside the **Keyword → icon rules** table (the rules table still wins on equal-length ties so you can keep manual overrides).
+- **When *Match most similar emoji* is on:** matching tokens give the chosen emoji a strong score boost in the emojilib lookup, biasing it toward your preference without replacing the index.
+
+The custom map is included in **Copy / Import JSON** (Presets & Autosidia) so you can share or back up your tweaks.
 
 ### If icons never appear on existing folders
 
@@ -83,9 +96,51 @@ Under **Auto–Iconize**, after the keyword table: **Emoji & keyword lookup** sh
 
 - *Pick banner from keyword candidates (Pixel Banner / Pexels) — current note* — modal; [processFrontMatter](https://docs.obsidian.md).
 
+## Auto–Cover
+
+Alternative to **Auto–Pixel Banner** that uses Obsidian's **built-in `cover` property** — no community plugin required. Auto–Cover actually performs an **image search** for each note (one HTTP call per note) and writes the resulting URL into front matter, where it is picked up by **Bases** card view (Image property) and **Obsidian Publish** social previews.
+
+### Providers
+
+- **Auto** (default) — Try **Wikipedia** REST page summary first (lead image for the topic, no API key); fall back to **Openverse** (free CC search, no key); finally **Pexels** if an API key is configured.
+- **Wikipedia** — Lead image only; great for notes whose title matches a Wikipedia topic, blank otherwise.
+- **Openverse** — Free, keyless CC image search; broader coverage but lower curation.
+- **Pexels** — Requires an API key in the field below; results are served via direct HTTPS.
+
+### Settings (in-app)
+
+- **Enable Auto–Cover** / **Cover front matter field** (default `cover`) / **Image search provider** / **Pexels API key** (optional) / **New notes: search and set `cover` automatically** / **Skip if `banner` already set** (recommended when running both features) / **Ignore note title** / **Candidate count (1–5)** for the picker / **Retro** + **/ minute** (1–120, default **6** to be friendly to free APIs).
+
+### Command
+
+- *Pick cover image from keyword candidates (Auto–Cover) — current note* — modal lists keyword variants; on selection, runs the image search and writes the chosen URL via [processFrontMatter](https://docs.obsidian.md). On no-results, shows a Notice so you can pick a different keyword.
+
+### Interaction with Auto–Pixel Banner
+
+The two features are independent and may be enabled together. With **Skip if `banner` already set** on (default), Auto–Cover skips notes that already have a Pixel Banner value, so each note ends up with at most one of the two. Field names are independent: change them under their respective sections to remove any overlap.
+
+## Hierarchical folder styling (planned)
+
+> Not yet implemented — see [PLANS.md](PLANS.md#phase-7--hierarchical-folder-styling-planned).
+
+Will apply **per-depth visual styling** to hierarchical folders so each level of the tree is recognizable across [graph view](https://help.obsidian.md/Plugins/Graph+view), the **file explorer**, and folder-note banners. Root / top-level folders render as **bigger graph nodes** and stronger labels; deeper folders shrink and de-emphasize.
+
+### Planned settings
+
+- **Enable Hierarchical folder styling** — master toggle.
+- **Max styled depth** — depth beyond which the deepest tier’s style is reused (e.g. 4).
+- **Per-depth styles** — table keyed by depth (1 = root). Per row: node size (graph view), font size / weight (explorer + graph label), color, icon scale (composes with [Auto–Iconize](#autoiconize)).
+- **Surfaces** — independent toggles for **Graph view**, **File explorer**, and **Folder-note banner** (composes with [Auto–Pixel Banner](#autopixel-banner) / [Auto–Cover](#autocover)).
+- **Retro** + **/ minute** — recompute depth class for all folders when settings change.
+
+### Planned commands
+
+- *Recompute hierarchical styles for all folders* — full re-pass without toggling retro.
+- *Reset hierarchical styles* — clears any depth metadata and removes injected CSS.
+
 ## Background retro queues (section)
 
-- **Stop all** — Clears the in-memory wait queues for **folder notes, waypoint, iconize, and pixel** retro (does not change toggles; queues can refill on next notice). **Command palette** — the same *Stop all background retro queues* command.
+- **Stop all** — Clears the in-memory wait queues for **folder notes, waypoint, iconize, pixel, and cover** retro (does not change toggles; queues can refill on next notice). **Command palette** — the same *Stop all background retro queues* command.
 
 ## Presets & Autosidia (section)
 
@@ -94,4 +149,4 @@ Under **Auto–Iconize**, after the keyword table: **Emoji & keyword lookup** sh
 
 ## Accessibility and safety
 
-- Retro queues and rate limits; [safePath](src/safePath.ts) skips **`.obsidian`**. **Network** (Pexels via Pixel Banner, Autosidia): [SECURITY.md](SECURITY.md).
+- Retro queues and rate limits; [safePath](src/safePath.ts) skips **`.obsidian`**. **Network** (Pexels via Pixel Banner, Wikipedia / Openverse / Pexels via Auto–Cover, Autosidia): [SECURITY.md](SECURITY.md).

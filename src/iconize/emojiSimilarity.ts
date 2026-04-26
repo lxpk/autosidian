@@ -155,8 +155,15 @@ function tokenizeTitle(name: string): string[] {
  * Picks the best-matching emoji from the **emojilib** English set (~all named Unicode emojis in the
  * library) using keyword overlap, IDF weighting, optional 1-edit fuzzy match, and
  * [synonymLexicon](synonymLexicon.ts) expansions.
+ *
+ * `customEmojiKeywords` (per-emoji user overrides) gives a strong score boost when any user
+ * keyword token matches a query token (after the same expansion pass), so users can steer the
+ * lookup toward a specific emoji without fully replacing the emojilib index.
  */
-export function findMostSimilarEmoji(title: string): string | null {
+export function findMostSimilarEmoji(
+	title: string,
+	customEmojiKeywords?: Record<string, string[]>
+): string | null {
 	const raw = tokenizeTitle(title);
 	if (raw.length === 0) {
 		return null;
@@ -203,6 +210,27 @@ export function findMostSimilarEmoji(title: string): string | null {
 		}
 	}
 
+	if (customEmojiKeywords) {
+		const queryTokenSet = new Set(queryTokens);
+		const CUSTOM_BOOST = p.avgIdf * 2.5;
+		for (const [emoji, words] of Object.entries(customEmojiKeywords)) {
+			if (!emoji || !Array.isArray(words) || words.length === 0) {
+				continue;
+			}
+			let matched = 0;
+			for (const phrase of words) {
+				for (const t of tokenizeRawKeyword(phrase)) {
+					if (queryTokenSet.has(t)) {
+						matched++;
+					}
+				}
+			}
+			if (matched > 0) {
+				scores.set(emoji, (scores.get(emoji) ?? 0) + CUSTOM_BOOST * matched);
+			}
+		}
+	}
+
 	let bestS = 0;
 	for (const s of scores.values()) {
 		if (s > bestS) {
@@ -240,9 +268,14 @@ export function getEmojiLookupStats(): { total: number; indexedTokens: number } 
 /**
  * Search the bundled emojilib keywords (substring on index tokens or joined keyword text).
  * Empty `query` returns the first `limit` emojis in stable sorted order for browsing.
+ *
+ * `limit` is clamped to the total number of indexed emojis (so callers can pass `Infinity`
+ * to walk the whole library — used by the in-app emoji table when you want the full list).
  */
 export function searchEmojiLookupTable(query: string, limit: number): EmojiLookupRow[] {
-	const lim = Math.max(1, Math.min(200, Math.floor(limit)));
+	const total = Object.keys(data).length;
+	const requested = Number.isFinite(limit) ? Math.floor(limit) : total;
+	const lim = Math.max(1, Math.min(total, requested));
 	const q = query.trim().toLowerCase();
 	const p = getPrepared();
 	const seen = new Set<string>();

@@ -13,10 +13,11 @@ Surfaces for **Autosidian** (Obsidian plugin) and, when implemented, the **Autos
 | `autosidian-add-waypoint` | Add %% Waypoint %% to active folder note (if needed) | Active file. |
 | `autosidian-apply-icon-selection` | Apply keyword icon to selected folder (folder note) | Active file must be a folder note. |
 | `autosidian-pick-banner-candidates` | Pick banner from keyword candidates (Pixel Banner / Pexels) — current note | Modal; writes keyword to `banner`. |
-| `autosidian-stop-all-retro-queues` | Stop all background retro queues (folder, waypoint, iconize, pixel) | Clears pending queue items; does not change retro toggles. |
+| `autosidian-pick-cover-candidates` | Pick cover image from keyword candidates (Auto–Cover) — current note | Modal; on pick, runs the image search and writes the chosen URL to `cover`. |
+| `autosidian-stop-all-retro-queues` | Stop all background retro queues (folder, waypoint, iconize, pixel, cover) | Clears pending queue items; does not change retro toggles. |
 
 - **Manifest** — [manifest.json](manifest.json) exposes `id`, `name`, `version`, and `minAppVersion`; must stay aligned with [SPEC.md](SPEC.md#prerequisites-and-dependencies).
-- **Front matter** — [FileManager](https://docs.obsidian.md) `processFrontMatter` for `icon` (Iconize) and `banner` (Pixel Banner) fields (names configurable in settings).
+- **Front matter** — [FileManager](https://docs.obsidian.md) `processFrontMatter` for `icon` (Iconize), `banner` (Pixel Banner), and the **built-in `cover`** property (Auto–Cover; consumed by Bases card view and Publish previews). Field names are configurable in their respective settings sections.
 
 ## Community plugin manifest IDs
 
@@ -43,8 +44,12 @@ Integration is with **public** behavior of these plugins, not private Iconize/Pi
 ## Network (optional)
 
 - **Pexels (via Pixel Banner)** — Configure keys in the Pixel Banner plugin; Autosidian can one-click a Pexels preset. Apply your own [SECURITY.md](SECURITY.md) and vault policy.
+- **Auto–Cover image search** — [coverSearch.ts](src/autoCover/coverSearch.ts) issues `GET` via Obsidian [`requestUrl`](https://docs.obsidian.md) ([coverHttp.ts](src/autoCover/coverHttp.ts)) to one of:
+  - Wikipedia REST page summary (`https://en.wikipedia.org/api/rest_v1/page/summary/{title}`) — returns `originalimage.source`.
+  - Openverse search (`https://api.openverse.engineering/v1/images/?q={q}&page_size={n}`) — returns CC-licensed image results.
+  - Pexels search (`https://api.pexels.com/v1/search?query={q}&per_page={n}`) — sends `Authorization: <apiKey>` from settings.
 - **Autosidia** — [AutosidiaClient](src/autosidia/AutosidiaClient.ts) `GET {base}/health` when you configure `registryBaseUrl` and use **Test** in settings.
-- **Future** — Image providers with API keys: use Obsidian [Secret storage](https://docs.obsidian.md) when implemented.
+- **Future** — Image providers with API keys: use Obsidian [Secret storage](https://docs.obsidian.md) when implemented (today the Pexels key is stored in plugin data alongside the rest of the settings).
 
 ## Presets (JSON)
 

@@ -7,7 +7,7 @@ describe("migrateSettings", () => {
 		const a = migrateSettings(null);
 		const b = migrateSettings(undefined);
 		const c = migrateSettings(42);
-		expect(a.settingsVersion).toBe(3);
+		expect(a.settingsVersion).toBe(4);
 		expect(b.waypoint.newFolderNotes).toBe(DEFAULT_SETTINGS.waypoint.newFolderNotes);
 		expect(c.iconize.rules.length).toBeGreaterThan(0);
 	});
@@ -24,8 +24,26 @@ describe("migrateSettings", () => {
 		expect(withCustom.iconize.rules).toEqual([{ keyword: "x", icon: "y" }]);
 	});
 
-	it("bumps to settingsVersion 3", () => {
-		expect(migrateSettings({ settingsVersion: 1 }).settingsVersion).toBe(3);
+	it("bumps to settingsVersion 4", () => {
+		expect(migrateSettings({ settingsVersion: 1 }).settingsVersion).toBe(4);
+		expect(migrateSettings({ settingsVersion: 3 }).settingsVersion).toBe(4);
+	});
+
+	it("merges autoCover defaults for upgrades from v3 (no autoCover)", () => {
+		const m = migrateSettings({ settingsVersion: 3 });
+		expect(m.autoCover.coverField).toBe(DEFAULT_SETTINGS.autoCover.coverField);
+		expect(m.autoCover.provider).toBe(DEFAULT_SETTINGS.autoCover.provider);
+		expect(m.autoCover.enabled).toBe(false);
+	});
+
+	it("preserves user overrides on autoCover", () => {
+		const m = migrateSettings({
+			autoCover: { provider: "pexels", pexelsApiKey: "k", enabled: true },
+		});
+		expect(m.autoCover.provider).toBe("pexels");
+		expect(m.autoCover.pexelsApiKey).toBe("k");
+		expect(m.autoCover.enabled).toBe(true);
+		expect(m.autoCover.coverField).toBe(DEFAULT_SETTINGS.autoCover.coverField);
 	});
 
 	it("merges defaultIcon for iconize", () => {

@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, expect } from "vitest";
-import { pickIconForTitle, resolveIconForFolderName } from "./keywordMatch";
+import { customKeywordsToRules, pickIconForTitle, resolveIconForFolderName } from "./keywordMatch";
 import { _resetEmojiSimilarityCacheForTests, findMostSimilarEmoji } from "./emojiSimilarity";
 import type { IconizeRule } from "../settings";
 
@@ -58,5 +58,51 @@ describe("resolve + most similar (emojilib)", () => {
 		expect(withMost).not.toBe("🗑");
 		const noMost = resolveIconForFolderName("pizza", [], "🗑", { mostSimilar: false, suggestDiverse: false });
 		expect(noMost).toBe("🗑");
+	});
+});
+
+describe("customEmojiKeywords (per-emoji user overrides)", () => {
+	beforeEach(() => {
+		_resetEmojiSimilarityCacheForTests();
+	});
+
+	it("customKeywordsToRules flattens map and drops empties", () => {
+		const flat = customKeywordsToRules({
+			"🤖": ["robot", "ai", " ml ", ""],
+			"📁": ["archive"],
+			"": ["bogus"],
+		});
+		expect(flat).toEqual([
+			{ keyword: "robot", icon: "🤖" },
+			{ keyword: "ai", icon: "🤖" },
+			{ keyword: "ml", icon: "🤖" },
+			{ keyword: "archive", icon: "📁" },
+		]);
+	});
+
+	it("pickIconForTitle: extra rules pick up matches the main rules miss", () => {
+		const rules: IconizeRule[] = [{ keyword: "project", icon: "P" }];
+		const extras = customKeywordsToRules({ "🤖": ["ai"] });
+		expect(pickIconForTitle("ai-stuff", rules, extras)).toBe("🤖");
+	});
+
+	it("pickIconForTitle: main rules win on ties of equal length", () => {
+		const rules: IconizeRule[] = [{ keyword: "ai", icon: "MAIN" }];
+		const extras = customKeywordsToRules({ "🤖": ["ai"] });
+		expect(pickIconForTitle("ai-stuff", rules, extras)).toBe("MAIN");
+	});
+
+	it("resolveIconForFolderName: customEmojiKeywords feed the longest-match pass", () => {
+		const r = resolveIconForFolderName("ml-experiments", [], "📝", {
+			customEmojiKeywords: { "🤖": ["ml"] },
+		});
+		expect(r).toBe("🤖");
+	});
+
+	it("findMostSimilarEmoji: user keyword boosts a specific emoji", () => {
+		const without = findMostSimilarEmoji("widgetron-9000");
+		const with_ = findMostSimilarEmoji("widgetron-9000", { "🦄": ["widgetron"] });
+		expect(with_).toBe("🦄");
+		expect(with_).not.toBe(without);
 	});
 });

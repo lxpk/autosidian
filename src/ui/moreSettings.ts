@@ -4,6 +4,8 @@ import { startWaypointRetro } from "../waypoint/registerWaypointFeature";
 import { restartIconizeRetroIfEnabled, startIconRetro } from "../iconize/registerIconizeFeature";
 import { applyPixelBannerPexelsSearchPreset } from "../pixelBanner/pixelBannerApiPreset";
 import { startPixelRetro } from "../pixelBanner/registerPixelBannerFeature";
+import { startCoverRetro } from "../autoCover/registerAutoCoverFeature";
+import type { CoverProvider } from "../settings";
 import { AutosidiaClient } from "../autosidia/AutosidiaClient";
 import { exportSettingsToJson, importPresetJson, mergeImportedIntoSettings } from "../presets/presetIO";
 import { addIconizeRuleTableSection } from "./iconizeRuleTable";
@@ -78,6 +80,12 @@ export function addAutomationSettingsSections(containerEl: HTMLElement, plugin: 
 
 	/* —— Iconize —— */
 	containerEl.createEl("h3", { text: "Auto–Iconize" });
+	const izWarn = containerEl.createEl("p", {
+		cls: "setting-item-description mod-warning",
+		text: "⚠️ Experimental and incomplete. Auto–Iconize may mis-match emojis, fail to sync with the Iconize plugin, or leave folder rows without icons. Review results before trusting on a large vault; keep backups.",
+	});
+	izWarn.style.color = "var(--text-warning)";
+	izWarn.style.fontWeight = "600";
 	containerEl.createEl("p", {
 		cls: "setting-item-description",
 		text: "Writes the `icon` field on **folder notes** and (optionally) tells Iconize to show the same icon on the **folder** row in the file explorer. In Iconize’s settings, turn on **front matter / properties** and use the **same field name** as below. **Set icon…** in Iconize only updates Iconize’s data file unless you enable *set front matter* there. **New / renamed folders** only runs on new/renamed folders; use **Retro** for existing vaults. **Diverse unmatched** adds a stable emoji when the name matches no keyword and default is empty.",
@@ -190,7 +198,7 @@ export function addAutomationSettingsSections(containerEl: HTMLElement, plugin: 
 			});
 		});
 	addIconizeRuleTableSection(containerEl, plugin, saveIconize);
-	addEmojiLookupTableSection(containerEl);
+	addEmojiLookupTableSection(containerEl, plugin, saveIconize);
 
 	/* —— Pixel Banner —— */
 	containerEl.createEl("h3", { text: "Auto–Pixel Banner" });
@@ -287,7 +295,129 @@ export function addAutomationSettingsSections(containerEl: HTMLElement, plugin: 
 			});
 		});
 
-	/* —— Queues (all four retro types) —— */
+	/* —— Auto–Cover —— */
+	containerEl.createEl("h3", { text: "Auto–Cover" });
+	containerEl.createEl("p", {
+		cls: "setting-item-description",
+		text: "Alternative to Auto–Pixel Banner that uses Obsidian's built-in `cover` property — no community plugin required. Performs a web image search per note (Wikipedia → Openverse, optionally Pexels) and writes the resulting image URL into front matter. Used by Bases card view (cover image) and Obsidian Publish previews.",
+	});
+	const cv = plugin.settings.autoCover;
+	new Setting(containerEl)
+		.setName("Enable Auto–Cover")
+		.setDesc(
+			"When on, new notes (toggle below) and Retro write a cover image URL to front matter. Disabled by default; turn on after picking the search provider you want."
+		)
+		.addToggle((t) =>
+			t.setValue(cv.enabled).onChange(async (v) => {
+				plugin.settings.autoCover.enabled = v;
+				await save();
+			})
+		);
+	new Setting(containerEl)
+		.setName("Cover front matter field")
+		.setDesc("Default: `cover` — Obsidian's built-in property used by Bases card view and Publish previews. Change only if you have a custom workflow.")
+		.addText((tx) => {
+			tx.setValue(cv.coverField);
+			tx.onChange(async (v) => {
+				plugin.settings.autoCover.coverField = v || "cover";
+				await save();
+			});
+		});
+	new Setting(containerEl)
+		.setName("Image search provider")
+		.setDesc(
+			"`auto` tries Wikipedia (lead image for the topic) then Openverse (free CC search). Pexels requires an API key below; choose `pexels` to use it exclusively, or set the key and keep `auto` to use it as the last fallback."
+		)
+		.addDropdown((d) => {
+			d.addOption("auto", "Auto (Wikipedia → Openverse → Pexels)");
+			d.addOption("wikipedia", "Wikipedia (lead image only)");
+			d.addOption("openverse", "Openverse (CC, no key)");
+			d.addOption("pexels", "Pexels (requires API key)");
+			d.setValue(cv.provider);
+			d.onChange(async (v) => {
+				plugin.settings.autoCover.provider = v as CoverProvider;
+				await save();
+			});
+		});
+	new Setting(containerEl)
+		.setName("Pexels API key (optional)")
+		.setDesc("Only sent when the provider is `pexels` or as the auto-fallback. Stored in plugin data; treat your vault's data file accordingly.")
+		.addText((tx) => {
+			tx.setPlaceholder("Pexels API key…");
+			tx.setValue(cv.pexelsApiKey);
+			tx.onChange(async (v) => {
+				plugin.settings.autoCover.pexelsApiKey = v.trim();
+				await save();
+			});
+		});
+	new Setting(containerEl)
+		.setName("New notes: search and set `cover` automatically")
+		.setDesc("When a new .md is created without a `cover` field, run an image search for the note title and write the resulting URL.")
+		.addToggle((t) =>
+			t.setValue(cv.newNotes).onChange(async (v) => {
+				plugin.settings.autoCover.newNotes = v;
+				await save();
+			})
+		);
+	new Setting(containerEl)
+		.setName("Skip if `banner` already set (Pixel Banner)")
+		.setDesc("Recommended when running both features so Pixel Banner notes keep their banner workflow and Auto–Cover handles only the rest.")
+		.addToggle((t) =>
+			t.setValue(cv.skipIfBannerPresent).onChange(async (v) => {
+				plugin.settings.autoCover.skipIfBannerPresent = v;
+				await save();
+			})
+		);
+	new Setting(containerEl)
+		.setName("Ignore note title (use random keyword instead)")
+		.setDesc("For new/retro auto-fill and the picker, use a generic keyword instead of the file name.")
+		.addToggle((t) =>
+			t.setValue(cv.ignoreTitleForSeed).onChange(async (v) => {
+				plugin.settings.autoCover.ignoreTitleForSeed = v;
+				await save();
+			})
+		);
+	new Setting(containerEl)
+		.setName("Candidate count (command palette picker)")
+		.addSlider((s) => {
+			s.setLimits(1, 5, 1);
+			s.setValue(cv.candidateCount);
+			s.setDynamicTooltip();
+			s.onChange(async (v) => {
+				plugin.settings.autoCover.candidateCount = v;
+				await save();
+			});
+		});
+	new Setting(containerEl)
+		.setName("Retro (notes missing `cover`)")
+		.setDesc("Slow background pass that searches and writes covers for existing notes. Each pulse hits one image API; keep the rate modest.")
+		.addToggle((t) =>
+			t.setValue(cv.retro).onChange(async (v) => {
+				plugin.settings.autoCover.retro = v;
+				await save();
+				if (v) {
+					void startCoverRetro(plugin, true);
+				} else {
+					plugin.autoCoverRetro.halt();
+				}
+			})
+		);
+	new Setting(containerEl)
+		.setName("Cover retro / minute")
+		.setDesc("1–120; default 6 to be friendly to free image APIs.")
+		.addSlider((s) => {
+			s.setLimits(1, 120, 1);
+			s.setValue(cv.retroPerMinute);
+			s.setInstant(false);
+			s.setDynamicTooltip();
+			s.onChange(async (v) => {
+				plugin.settings.autoCover.retroPerMinute = v;
+				await save();
+				plugin.autoCoverRetro.restartTimer();
+			});
+		});
+
+	/* —— Queues (all five retro types) —— */
 	containerEl.createEl("h3", { text: "Background retro queues" });
 	containerEl.createEl("p", {
 		cls: "setting-item-description",
@@ -304,12 +434,14 @@ export function addAutomationSettingsSections(containerEl: HTMLElement, plugin: 
 				const w = plugin.waypointRetro.getQueueLength();
 				const i = plugin.iconizeRetro.getQueueLength();
 				const p = plugin.pixelRetro.getQueueLength();
+				const c = plugin.autoCoverRetro.getQueueLength();
 				plugin.folderNotesRetro.halt();
 				plugin.waypointRetro.halt();
 				plugin.iconizeRetro.halt();
 				plugin.pixelRetro.halt();
+				plugin.autoCoverRetro.halt();
 				new Notice(
-					`Autosidian: stopped retro queues (had ${a} + ${w} + ${i} + ${p} item(s) pending, folder/waypoint/iconize/pixel).`
+					`Autosidian: stopped retro queues (had ${a} + ${w} + ${i} + ${p} + ${c} item(s) pending, folder/waypoint/iconize/pixel/cover).`
 				);
 			});
 		});

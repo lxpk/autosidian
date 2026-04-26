@@ -49,6 +49,7 @@ export function mergeImportedIntoSettings(
 					: current.iconize.rules,
 		},
 		pixelBanner: { ...current.pixelBanner, ...imported.pixelBanner },
+		autoCover: { ...current.autoCover, ...imported.autoCover },
 		autosidia: { ...current.autosidia, ...imported.autosidia },
 	});
 }

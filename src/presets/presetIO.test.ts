@@ -11,13 +11,22 @@ describe("presetIO", () => {
 		const raw = importPresetJson(j);
 		const merged = mergeImportedIntoSettings(sample, raw);
 		expect(merged.waypoint.retro).toBe(true);
-		expect(merged.settingsVersion).toBe(3);
+		expect(merged.settingsVersion).toBe(4);
 	});
 
 	it("import raw partial object (no schema)", () => {
 		const p = { pixelBanner: { newNotes: true } } as Partial<AutosidianSettings>;
 		const merged = mergeImportedIntoSettings(sample, p);
 		expect(merged.pixelBanner.newNotes).toBe(true);
+	});
+
+	it("merges autoCover overrides while keeping defaults for unset keys", () => {
+		const merged = mergeImportedIntoSettings(sample, {
+			autoCover: { enabled: true, provider: "openverse" },
+		});
+		expect(merged.autoCover.enabled).toBe(true);
+		expect(merged.autoCover.provider).toBe("openverse");
+		expect(merged.autoCover.coverField).toBe(DEFAULT_SETTINGS.autoCover.coverField);
 	});
 
 	it("import keeps current iconize rules if imported rules array empty", () => {

@@ -31,10 +31,28 @@
 	margin: 0.5em 0 1em;
 }
 
-.autosidian-emoji-synonym-scroll,
-.autosidian-emoji-lookup-scroll {
+.autosidian-emoji-synonym-scroll {
 	max-height: 14rem;
 	overflow-y: auto;
+}
+
+.autosidian-emoji-lookup-scroll {
+	max-height: 28rem;
+	overflow-y: auto;
+}
+
+.autosidian-emoji-table th:nth-child(1),
+.autosidian-emoji-table td:nth-child(1) {
+	width: 2.5em;
+	white-space: nowrap;
+}
+.autosidian-emoji-table th:nth-child(2),
+.autosidian-emoji-table td:nth-child(2) {
+	width: 45%;
+}
+.autosidian-emoji-table th:nth-child(3),
+.autosidian-emoji-table td:nth-child(3) {
+	width: 45%;
 }
 
 .autosidian-emoji-cell {

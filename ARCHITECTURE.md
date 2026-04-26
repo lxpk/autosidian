@@ -17,21 +17,24 @@ flowchart LR
   A --> W
   A --> I
   A --> PB
-  A -->|optional| Web[Picsum HTTPS]
+  A -->|cover image search| Wiki[Wikipedia REST]
+  A -->|cover image search| OV[Openverse API]
+  A -->|cover image search, key| Pex[Pexels API]
   A -->|optional| Reg[Autosidia registry]
 ```
 
 ## Source layout (repository)
 
-- `src/main.ts` — `Plugin` entry: settings, tab, and `register*Feature` for folder notes, waypoint, iconize, pixel banner; per-feature retro queue instances.
-- `src/migrateSettings.ts` — merge persisted JSON with `DEFAULT_SETTINGS` (`settingsVersion` **3**).
+- `src/main.ts` — `Plugin` entry: settings, tab, and `register*Feature` for folder notes, waypoint, iconize, pixel banner, auto cover; per-feature retro queue instances.
+- `src/migrateSettings.ts` — merge persisted JSON with `DEFAULT_SETTINGS` (`settingsVersion` **4**).
 - `src/safePath.ts` — `isUnderObsidianConfig` (ignore `.obsidian/` paths).
-- `src/settings.ts` — `folderNotes`, `waypoint`, `iconize`, `pixelBanner`, `autosidia` (`registryBaseUrl`).
+- `src/settings.ts` — `folderNotes`, `waypoint`, `iconize`, `pixelBanner`, `autoCover`, `autosidia` (`registryBaseUrl`).
 - `src/deps/requiredPlugins.ts` — required community plugin IDs and `getMissingRequiredPlugins()`.
 - `src/folderNotes/` — Auto–Folder Notes.
 - `src/waypoint/` — Auto–Waypoint (markdown helpers, register, `retroactiveWaypointQueue.ts`).
 - `src/iconize/` — keyword match, `processFrontMatter` for `icon` on folder notes, register, retro.
 - `src/pixelBanner/` — Picsum seed URLs, `processFrontMatter` for `banner`, modal, register, retro.
+- `src/autoCover/` — Web image search (Wikipedia / Openverse / Pexels) with injectable HTTP fetcher (`coverHttp.ts`), `processFrontMatter` for the built-in `cover` field, picker modal, register, retro.
 - `src/presets/` — JSON export / import. `src/autosidia/` — optional health check (`GET {base}/health`).
 - `src/ui/AutosidianSettingTab.ts` + `moreSettings.ts` — **Settings → Autosidian** UI.
 - `src/**/*.test.ts` — [Vitest](vitest.config.ts) (excluded from plugin `tsc` in [tsconfig](tsconfig.json)).
@@ -45,6 +48,7 @@ flowchart LR
 - **Waypoint automation** — Inserts `%% Waypoint %%` when the folder has subfolders and the folder note is missing a waypoint; idempotent.
 - **Iconize automation** — Longest keyword match; writes `icon` in front matter (Iconize must read the same key / front matter on).
 - **Pixel Banner automation** — Sets `banner` (or configured field) to a Picsum URL or opens a small picker; respects rate limits in retro.
+- **Auto–Cover automation** — Searches the web for an image (Wikipedia → Openverse → Pexels, configurable) and writes the resulting URL to the **built-in `cover`** front matter field. Independent of Pixel Banner; can `skipIfBannerPresent` to coexist. One HTTP call per note; retro is rate-limited like the other queues.
 - **Autosidia client (optional)** — `GET` health to `registryBaseUrl` when set; no auth in the stub.
 
 ## Dependency rules
